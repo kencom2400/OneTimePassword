@@ -108,7 +108,9 @@ class OneTimePasswordApp:
             # QRコードデータの形式を検証
             if not self.camera_reader.validate_qr_data(qr_data):
                 print("無効なQRコード形式です")
-                print("期待される形式: otpauth-migration://offline?data=[英数特殊記号文字列]")
+                print(
+                    "期待される形式: otpauth-migration://offline?data=[英数特殊記号文字列]"
+                )
                 return False
 
             print("QRコードを解析中...")
@@ -227,7 +229,9 @@ class OneTimePasswordApp:
             print(f"アカウントが見つかりません: {account_id}")
             return False
 
-        print(f"アカウント '{account['account_name']}' を削除しますか？ (y/N): ", end="")
+        print(
+            f"アカウント '{account['account_name']}' を削除しますか？ (y/N): ", end=""
+        )
         confirm = input().strip().lower()
 
         if confirm == "y":
@@ -334,7 +338,9 @@ def main():
     # add コマンド
     add_parser = subparsers.add_parser("add", help="アカウントを追加")
     add_group = add_parser.add_mutually_exclusive_group(required=True)
-    add_group.add_argument("--camera", action="store_true", help="カメラでQRコード読み取り")
+    add_group.add_argument(
+        "--camera", action="store_true", help="カメラでQRコード読み取り"
+    )
     add_group.add_argument("--image", type=str, help="画像ファイルからQRコード読み取り")
 
     # show コマンド

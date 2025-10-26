@@ -1,6 +1,7 @@
 """
 otp_generator.pyのテスト
 """
+
 import pytest
 import time
 import threading

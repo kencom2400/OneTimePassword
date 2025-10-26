@@ -14,9 +14,12 @@ class TestOneTimePasswordApp:
     @pytest.fixture
     def app(self):
         """テスト用アプリケーションインスタンス"""
-        with patch("src.main.SecurityManager"), patch("src.main.OTPGenerator"), patch(
-            "src.main.CameraQRReader"
-        ), patch("src.main.DockerManager"):
+        with (
+            patch("src.main.SecurityManager"),
+            patch("src.main.OTPGenerator"),
+            patch("src.main.CameraQRReader"),
+            patch("src.main.DockerManager"),
+        ):
             return OneTimePasswordApp()
 
     def test_add_account_from_camera_success(self, app):

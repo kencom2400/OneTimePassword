@@ -47,7 +47,7 @@ jobs:
     - name: 依存関係のインストール
       timeout-minutes: 10
       run: |
-        poetry install --no-interaction --no-ansi -vv
+        poetry install --only main,test --no-interaction --no-ansi -vv
     
     - name: 単体テストの実行
       run: |

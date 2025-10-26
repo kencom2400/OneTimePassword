@@ -126,11 +126,12 @@ class TestAccountFlowIntegration:
     def app(self, temp_data_dir):
         """テスト用アプリケーションインスタンス"""
         data_file = os.path.join(temp_data_dir, "test_accounts.json")
-        with patch("src.main.SecurityManager") as mock_sm_class, patch(
-            "src.main.OTPGenerator"
-        ) as mock_otp_class, patch("src.main.CameraQRReader") as mock_cam_class, patch(
-            "src.main.DockerManager"
-        ) as mock_docker_class:
+        with (
+            patch("src.main.SecurityManager") as mock_sm_class,
+            patch("src.main.OTPGenerator") as mock_otp_class,
+            patch("src.main.CameraQRReader") as mock_cam_class,
+            patch("src.main.DockerManager") as mock_docker_class,
+        ):
             # 実際のSecurityManagerインスタンスを作成
             real_sm = SecurityManager(
                 data_file=data_file, password="test_password_integration"
@@ -232,11 +233,12 @@ class TestEndToEndIntegration:
     def app(self, temp_data_dir):
         """テスト用アプリケーションインスタンス"""
         data_file = os.path.join(temp_data_dir, "test_accounts.json")
-        with patch("src.main.SecurityManager") as mock_sm_class, patch(
-            "src.main.OTPGenerator"
-        ) as mock_otp_class, patch("src.main.CameraQRReader") as mock_cam_class, patch(
-            "src.main.DockerManager"
-        ) as mock_docker_class:
+        with (
+            patch("src.main.SecurityManager") as mock_sm_class,
+            patch("src.main.OTPGenerator") as mock_otp_class,
+            patch("src.main.CameraQRReader") as mock_cam_class,
+            patch("src.main.DockerManager") as mock_docker_class,
+        ):
             # 実際のSecurityManagerインスタンスを作成
             real_sm = SecurityManager(
                 data_file=data_file, password="test_password_integration"

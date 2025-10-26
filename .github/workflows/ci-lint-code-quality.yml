@@ -40,7 +40,7 @@ jobs:
     
     - name: 依存関係のインストール
       run: |
-        poetry install --no-interaction --no-ansi
+        poetry install --only main,lint --no-interaction --no-ansi
     
     - name: Black フォーマットチェック
       run: |

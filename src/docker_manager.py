@@ -75,7 +75,9 @@ class DockerManager:
             print(f"Dockerイメージ '{self.image_name}' が見つかりました")
             return True
 
-        print(f"Dockerイメージ '{self.image_name}' が見つかりません。自動ビルドを開始します...")
+        print(
+            f"Dockerイメージ '{self.image_name}' が見つかりません。自動ビルドを開始します..."
+        )
         return self.setup_environment()
 
     def delete_image(self) -> bool:

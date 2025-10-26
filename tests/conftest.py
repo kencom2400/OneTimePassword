@@ -1,6 +1,7 @@
 """
 テスト共通フィクスチャ
 """
+
 import pytest
 import tempfile
 import os
