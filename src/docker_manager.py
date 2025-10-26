@@ -9,6 +9,7 @@ import tempfile
 import json
 import re
 from typing import Dict, List, Optional, Tuple
+from urllib.parse import urlparse, parse_qs, unquote
 import time
 
 
@@ -241,52 +242,59 @@ class DockerManager:
     
     def parse_otpauth_output(self, output: str) -> Optional[Dict[str, str]]:
         """
-        otpauthの出力を解析
+        otpauthの出力を解析（urllib.parseを使用）
         
         Args:
             output: otpauthの出力文字列
+            例: otpauth://totp/[アカウント名]?algorithm=SHA1&digits=6&issuer=[IssueName]&period=30&secret=[SecurityCode]
+            または: otpauth://totp/[Device名]@[アカウント名]?algorithm=SHA1&digits=6&issuer=[IssueName]&period=30&secret=[SecurityCode]
             
         Returns:
             解析結果の辞書
         """
         try:
-            # 実際の出力形式: otpauth://totp/[アカウント名]?algorithm=SHA1&digits=6&issuer=[IssueName]&period=30&secret=[SecurityCode]
-            # または: otpauth://totp/[Device名]@[アカウント名]?algorithm=SHA1&digits=6&issuer=[IssueName]&period=30&secret=[SecurityCode]
+            # URLをパース
+            parsed_url = urlparse(output.strip())
             
-            # パターン1: @が含まれない形式
-            pattern1 = r'otpauth://totp/([^@?]+)\?algorithm=([^&]+)&digits=(\d+)&issuer=([^&]+)&period=(\d+)&secret=([^&\s]+)'
-            match1 = re.search(pattern1, output)
+            # スキーマとホストを検証
+            if parsed_url.scheme != 'otpauth':
+                print(f"無効なスキーマ: {parsed_url.scheme}")
+                return None
             
-            if match1:
-                account_name, algorithm, digits, issuer, period, secret = match1.groups()
-                return {
-                    'device_name': account_name,  # デバイス名がない場合はアカウント名を使用
-                    'account_name': account_name,
-                    'algorithm': algorithm,
-                    'digits': digits,
-                    'issuer': issuer,
-                    'period': period,
-                    'secret': secret
-                }
+            if parsed_url.netloc != 'totp':
+                print(f"無効なotpauthタイプ: {parsed_url.netloc}")
+                return None
             
-            # パターン2: @が含まれる形式
-            pattern2 = r'otpauth://totp/([^@]+)@([^?]+)\?algorithm=([^&]+)&digits=(\d+)&issuer=([^&]+)&period=(\d+)&secret=([^&\s]+)'
-            match2 = re.search(pattern2, output)
+            # パスから device_name と account_name を取得
+            path = unquote(parsed_url.path.lstrip('/'))
             
-            if match2:
-                device_name, account_name, algorithm, digits, issuer, period, secret = match2.groups()
-                return {
-                    'device_name': device_name,
-                    'account_name': account_name,
-                    'algorithm': algorithm,
-                    'digits': digits,
-                    'issuer': issuer,
-                    'period': period,
-                    'secret': secret
-                }
+            if '@' in path:
+                # パターン2: Device名@アカウント名
+                device_name, account_name = path.split('@', 1)
+            else:
+                # パターン1: アカウント名のみ（device_nameとして同じ値を使用）
+                device_name = account_name = path
             
-            print(f"出力の解析に失敗しました: {output}")
-            return None
+            # クエリパラメータをパース
+            params = parse_qs(parsed_url.query)
+            
+            # 各パラメータを取得（リストの最初の要素を取得）
+            result = {
+                'device_name': device_name,
+                'account_name': account_name,
+                'algorithm': params.get('algorithm', [None])[0],
+                'digits': params.get('digits', [None])[0],
+                'issuer': params.get('issuer', [None])[0],
+                'period': params.get('period', [None])[0],
+                'secret': params.get('secret', [None])[0]
+            }
+            
+            # 必須パラメータの検証
+            if not result['secret']:
+                print(f"秘密鍵が見つかりません: {output}")
+                return None
+            
+            return result
                 
         except Exception as e:
             print(f"出力解析エラー: {str(e)}")

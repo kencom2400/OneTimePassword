@@ -206,6 +206,70 @@ class TestDockerManager:
         
         assert result is None
 
+    def test_parse_otpauth_output_url_encoded(self, docker_manager):
+        """TC-DM-016a: otpauth出力解析（URLエンコード対応）"""
+        # スペースが%20でエンコードされたURL
+        output = "otpauth://totp/Google%20Account?algorithm=SHA1&digits=6&issuer=Google&period=30&secret=JBSWY3DPEHPK3PXP"
+        
+        result = docker_manager.parse_otpauth_output(output)
+        
+        assert result is not None
+        assert result['device_name'] == "Google Account"
+        assert result['account_name'] == "Google Account"
+        assert result['issuer'] == "Google"
+        assert result['secret'] == "JBSWY3DPEHPK3PXP"
+
+    def test_parse_otpauth_output_complex_account_name(self, docker_manager):
+        """TC-DM-016b: otpauth出力解析（複雑なアカウント名）"""
+        # デバイス名@複数の@を含むアカウント名
+        output = "otpauth://totp/MyDevice@user@example.com?algorithm=SHA1&digits=6&issuer=Service&period=30&secret=JBSWY3DPEHPK3PXP"
+        
+        result = docker_manager.parse_otpauth_output(output)
+        
+        assert result is not None
+        assert result['device_name'] == "MyDevice"
+        assert result['account_name'] == "user@example.com"
+        assert result['issuer'] == "Service"
+        assert result['secret'] == "JBSWY3DPEHPK3PXP"
+
+    def test_parse_otpauth_output_special_characters(self, docker_manager):
+        """TC-DM-016c: otpauth出力解析（特殊文字を含むURL）"""
+        # 日本語やその他の特殊文字がエンコードされたURL
+        output = "otpauth://totp/Test%20%2B%20Special?algorithm=SHA1&digits=6&issuer=My%20Issuer&period=30&secret=JBSWY3DPEHPK3PXP"
+        
+        result = docker_manager.parse_otpauth_output(output)
+        
+        assert result is not None
+        assert result['account_name'] == "Test + Special"
+        assert result['issuer'] == "My Issuer"
+        assert result['secret'] == "JBSWY3DPEHPK3PXP"
+
+    def test_parse_otpauth_output_missing_secret(self, docker_manager):
+        """TC-DM-016d: otpauth出力解析（秘密鍵なし）"""
+        # secretパラメータが欠落しているURL
+        output = "otpauth://totp/Account?algorithm=SHA1&digits=6&issuer=GitHub&period=30"
+        
+        result = docker_manager.parse_otpauth_output(output)
+        
+        # secretが必須なのでNoneが返される
+        assert result is None
+
+    def test_parse_otpauth_output_invalid_scheme(self, docker_manager):
+        """TC-DM-016e: otpauth出力解析（無効なスキーマ）"""
+        output = "http://totp/Account?algorithm=SHA1&digits=6&issuer=GitHub&period=30&secret=JBSWY3DPEHPK3PXP"
+        
+        result = docker_manager.parse_otpauth_output(output)
+        
+        assert result is None
+
+    def test_parse_otpauth_output_invalid_type(self, docker_manager):
+        """TC-DM-016f: otpauth出力解析（無効なotpauthタイプ）"""
+        output = "otpauth://hotp/Account?algorithm=SHA1&digits=6&issuer=GitHub&period=30&secret=JBSWY3DPEHPK3PXP"
+        
+        result = docker_manager.parse_otpauth_output(output)
+        
+        assert result is None
+
     def test_process_qr_url_success(self, docker_manager):
         """TC-DM-017: QRコードURL処理（成功）"""
         qr_url = "otpauth-migration://offline?data=test_data"
