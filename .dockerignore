@@ -1,0 +1,66 @@
+# Git files
+.git/
+.gitignore
+.gitattributes
+
+# Python cache and compiled files
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Virtual environments
+venv/
+env/
+ENV/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Testing
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+coverage.xml
+*.cover
+.hypothesis/
+
+# Data files (sensitive information)
+data/
+*.json
+
+# Logs
+*.log
+logs/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Documentation
+*.md
+docs/
+
+# CI/CD
+.github/
+
+# Poetry
+poetry.lock
+
+# Test files (not needed in Docker image)
+tests/
+test_*.py
+*_test.py
+conftest.py
+TEST_DESIGN.md
+
+# Build artifacts
+build/
+dist/
+*.egg-info/
+

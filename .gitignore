@@ -43,9 +43,6 @@ logs/
 .DS_Store
 Thumbs.db
 
-# Docker
-.dockerignore
-
 # Coverage reports
 coverage.xml
 htmlcov/
