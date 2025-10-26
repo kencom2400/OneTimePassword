@@ -2,6 +2,8 @@
 
 Google Authenticatorと同様の機能を持つワンタイムパスワード（OTP）生成アプリケーションです。PCカメラを使用してQRコードを読み取り、複数のアカウントのOTPを同時に管理・表示できます。
 
+**[English version is available here (英語版はこちら)](README.en.md)**
+
 ## 📑 目次
 
 - [🚀 主な機能](#-主な機能)
