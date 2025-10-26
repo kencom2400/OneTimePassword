@@ -152,11 +152,21 @@ poetry run python src/main.py status
 ## 🔒 Security
 
 - **Encryption**: Security codes are encrypted with PBKDF2 before storage
+- **Random Salts**: Generate a unique 16-byte random salt for each encryption (protects against rainbow table attacks)
 - **Local Storage**: Confidential data is not committed to GitHub
 - **Memory Clearing**: Sensitive data is cleared immediately after use
 - **Permission Management**: Appropriate file permission settings
 - **Camera Access**: Access camera with minimal permissions
 - **Environment Variables**: Master password is securely managed through environment variables
+
+### 🔐 Encryption Mechanism
+
+This application follows industry-standard security practices:
+
+1. **Unique Salt Per Encryption**: Even encrypting the same data produces different results each time
+2. **PBKDF2 Key Derivation**: Derives encryption keys from master password with 100,000 iterations
+3. **Fernet Encryption**: Authenticated encryption using AES-128-CBC and HMAC-SHA256
+4. **Salt Storage**: 16-byte random salt is stored alongside encrypted data
 
 ### 🔐 Master Password Configuration (Important)
 

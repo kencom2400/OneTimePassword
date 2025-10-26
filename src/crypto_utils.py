@@ -15,6 +15,11 @@ import json
 class CryptoUtils:
     """暗号化・復号化のユーティリティクラス"""
     
+    # ソルトのバイト長（16バイト = 128ビット）
+    SALT_LENGTH = 16
+    # PBKDF2の反復回数
+    PBKDF2_ITERATIONS = 100000
+    
     def __init__(self, password: str = None):
         """
         初期化
@@ -25,8 +30,6 @@ class CryptoUtils:
         self.password = password or self._get_password()
         if not self.password:
             raise ValueError("暗号化パスワードが提供されていません。環境変数OTP_MASTER_PASSWORDを設定するか、パスワードを指定してください。")
-        self.key = self._derive_key(self.password)
-        self.cipher = Fernet(self.key)
     
     def _get_password(self) -> str:
         """
@@ -64,58 +67,81 @@ class CryptoUtils:
         
         return ""
     
-    def _derive_key(self, password: str) -> bytes:
+    def _derive_key(self, password: str, salt: bytes) -> bytes:
         """
-        パスワードから暗号化キーを導出
+        パスワードとソルトから暗号化キーを導出
         
-        注意: 本実装では固定ソルトを使用していますが、これはセキュリティ上の制約です。
-        理想的には、各アカウントごとにランダムなソルトを生成し、暗号化データと共に保存すべきです。
-        環境変数 OTP_SALT を設定することで、カスタムソルトを使用できます。
+        Args:
+            password: マスターパスワード
+            salt: ランダムに生成されたソルト
+            
+        Returns:
+            導出された暗号化キー
         """
         password_bytes = password.encode()
-        
-        # 環境変数からソルトを取得、なければデフォルトソルトを使用
-        salt_str = os.environ.get("OTP_SALT", "otp_salt_2024_default")
-        salt = salt_str.encode()
         
         kdf = PBKDF2HMAC(
             algorithm=hashes.SHA256(),
             length=32,
             salt=salt,
-            iterations=100000,
+            iterations=self.PBKDF2_ITERATIONS,
         )
         key = base64.urlsafe_b64encode(kdf.derive(password_bytes))
         return key
     
     def encrypt(self, data: str) -> str:
         """
-        データを暗号化
+        データを暗号化（各暗号化ごとにランダムなソルトを生成）
         
         Args:
             data: 暗号化するデータ
             
         Returns:
             暗号化されたデータ（Base64エンコード）
+            形式: base64(salt + encrypted_data)
         """
         try:
-            encrypted_data = self.cipher.encrypt(data.encode())
-            return base64.urlsafe_b64encode(encrypted_data).decode()
+            # ランダムなソルトを生成
+            salt = os.urandom(self.SALT_LENGTH)
+            
+            # ソルトから暗号化キーを導出
+            key = self._derive_key(self.password, salt)
+            cipher = Fernet(key)
+            
+            # データを暗号化
+            encrypted_data = cipher.encrypt(data.encode())
+            
+            # ソルト + 暗号化データを結合してBase64エンコード
+            combined = salt + encrypted_data
+            return base64.urlsafe_b64encode(combined).decode()
         except Exception as e:
             raise Exception(f"暗号化エラー: {str(e)}")
     
     def decrypt(self, encrypted_data: str) -> str:
         """
-        データを復号化
+        データを復号化（ソルトを抽出して使用）
         
         Args:
             encrypted_data: 暗号化されたデータ（Base64エンコード）
+            形式: base64(salt + encrypted_data)
             
         Returns:
             復号化されたデータ
         """
         try:
-            encrypted_bytes = base64.urlsafe_b64decode(encrypted_data.encode())
-            decrypted_data = self.cipher.decrypt(encrypted_bytes)
+            # Base64デコード
+            combined = base64.urlsafe_b64decode(encrypted_data.encode())
+            
+            # ソルトと暗号化データを分離
+            salt = combined[:self.SALT_LENGTH]
+            encrypted_bytes = combined[self.SALT_LENGTH:]
+            
+            # ソルトから暗号化キーを導出
+            key = self._derive_key(self.password, salt)
+            cipher = Fernet(key)
+            
+            # データを復号化
+            decrypted_data = cipher.decrypt(encrypted_bytes)
             return decrypted_data.decode()
         except Exception as e:
             raise Exception(f"復号化エラー: {str(e)}")

@@ -266,13 +266,18 @@ class TestCryptoUtils:
         assert decrypted == binary_like_data
 
     def test_key_derivation_consistency(self):
-        """TC-CRYPTO-024: キー導出の一貫性"""
+        """TC-CRYPTO-024: キー導出の一貫性（同じパスワード＋ソルトから同じキー）"""
         password = "test_password"
+        salt = b'test_salt_16byte'  # 16バイトのテスト用ソルト
+        
         crypto1 = CryptoUtils(password)
         crypto2 = CryptoUtils(password)
         
-        # 同じパスワードから同じキーが導出されることを確認
-        assert crypto1.key == crypto2.key
+        # 同じパスワードとソルトから同じキーが導出されることを確認
+        key1 = crypto1._derive_key(password, salt)
+        key2 = crypto2._derive_key(password, salt)
+        
+        assert key1 == key2
 
     def test_encrypt_decrypt_with_different_instances(self):
         """TC-CRYPTO-025: 異なるインスタンス間での暗号化・復号化"""
