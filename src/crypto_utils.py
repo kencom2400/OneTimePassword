@@ -5,6 +5,7 @@
 
 import os
 import base64
+import getpass
 from cryptography.fernet import Fernet
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
@@ -19,21 +20,63 @@ class CryptoUtils:
         初期化
         
         Args:
-            password: 暗号化用パスワード（Noneの場合はデフォルトパスワードを使用）
+            password: 暗号化用パスワード（Noneの場合は環境変数またはユーザー入力から取得）
         """
-        self.password = password or self._get_default_password()
+        self.password = password or self._get_password()
+        if not self.password:
+            raise ValueError("暗号化パスワードが提供されていません。環境変数OTP_MASTER_PASSWORDを設定するか、パスワードを指定してください。")
         self.key = self._derive_key(self.password)
         self.cipher = Fernet(self.key)
     
-    def _get_default_password(self) -> str:
-        """デフォルトパスワードを取得"""
-        # 実際の実装では、より安全な方法でパスワードを管理する
-        return "OneTimePassword_Default_Key_2024"
+    def _get_password(self) -> str:
+        """
+        パスワードを安全に取得
+        
+        優先順位:
+        1. 環境変数 OTP_MASTER_PASSWORD
+        2. 環境変数 OTP_PASSWORD_FILE からファイルパスを読み込み
+        3. ユーザー入力（インタラクティブモード時のみ）
+        
+        Returns:
+            パスワード文字列
+        """
+        # 1. 環境変数から直接取得
+        password = os.environ.get("OTP_MASTER_PASSWORD", "")
+        if password:
+            return password
+        
+        # 2. ファイルから取得
+        password_file = os.environ.get("OTP_PASSWORD_FILE", "")
+        if password_file and os.path.exists(password_file):
+            try:
+                with open(password_file, 'r') as f:
+                    return f.read().strip()
+            except Exception as e:
+                print(f"警告: パスワードファイルの読み込みに失敗: {str(e)}")
+        
+        # 3. インタラクティブモードの場合のみユーザー入力
+        # 非インタラクティブモード（テストやCI/CD）では空文字列を返す
+        if os.isatty(0):  # 標準入力が端末かチェック
+            try:
+                return getpass.getpass("マスターパスワードを入力してください: ")
+            except Exception:
+                pass
+        
+        return ""
     
     def _derive_key(self, password: str) -> bytes:
-        """パスワードから暗号化キーを導出"""
+        """
+        パスワードから暗号化キーを導出
+        
+        注意: 本実装では固定ソルトを使用していますが、これはセキュリティ上の制約です。
+        理想的には、各アカウントごとにランダムなソルトを生成し、暗号化データと共に保存すべきです。
+        環境変数 OTP_SALT を設定することで、カスタムソルトを使用できます。
+        """
         password_bytes = password.encode()
-        salt = b'otp_salt_2024'  # 実際の実装ではランダムなソルトを使用
+        
+        # 環境変数からソルトを取得、なければデフォルトソルトを使用
+        salt_str = os.environ.get("OTP_SALT", "otp_salt_2024_default")
+        salt = salt_str.encode()
         
         kdf = PBKDF2HMAC(
             algorithm=hashes.SHA256(),
@@ -133,7 +176,8 @@ def create_crypto_utils(password: str = None) -> CryptoUtils:
 # テスト用の関数
 def test_encryption():
     """暗号化・復号化のテスト"""
-    crypto = CryptoUtils()
+    # テスト用のパスワードを使用
+    crypto = CryptoUtils("test_password_for_demo")
     
     test_data = "test_secret_key_12345"
     encrypted = crypto.encrypt(test_data)

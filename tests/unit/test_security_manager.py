@@ -22,7 +22,8 @@ class TestSecurityManager:
     def security_manager(self, temp_data_dir):
         """テスト用SecurityManagerインスタンス"""
         data_file = os.path.join(temp_data_dir, "test_accounts.json")
-        return SecurityManager(data_file=data_file)
+        # テスト用の固定パスワードを使用
+        return SecurityManager(data_file=data_file, password="test_password_for_unit_tests")
 
     def test_add_account_normal(self, security_manager):
         """TC-SM-001: 正常なアカウント追加"""
@@ -297,7 +298,7 @@ class TestSecurityManager:
         )
         
         # 新しいインスタンスでデータを読み込み
-        new_manager = SecurityManager(data_file=security_manager.data_file)
+        new_manager = SecurityManager(data_file=security_manager.data_file, password="test_password_for_unit_tests")
         account = new_manager.get_account(account_id)
         
         assert account is not None

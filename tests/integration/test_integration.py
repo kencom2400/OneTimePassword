@@ -25,7 +25,7 @@ class TestCryptoIntegration:
     def test_encryption_decryption_integration(self, temp_data_dir):
         """TC-INT-001: 暗号化・復号化の統合テスト"""
         data_file = os.path.join(temp_data_dir, "test_accounts.json")
-        security_manager = SecurityManager(data_file=data_file)
+        security_manager = SecurityManager(data_file=data_file, password="test_password_integration")
         
         # アカウント追加
         account_id = security_manager.add_account(
@@ -46,7 +46,7 @@ class TestCryptoIntegration:
     def test_security_manager_encryption_integration(self, temp_data_dir):
         """TC-INT-002: SecurityManager暗号化統合テスト"""
         data_file = os.path.join(temp_data_dir, "test_accounts.json")
-        security_manager = SecurityManager(data_file=data_file)
+        security_manager = SecurityManager(data_file=data_file, password="test_password_integration")
         
         # 複数アカウント追加
         account_ids = []
@@ -117,7 +117,7 @@ class TestAccountFlowIntegration:
              patch('src.main.DockerManager') as mock_docker_class:
             
             # 実際のSecurityManagerインスタンスを作成
-            real_sm = SecurityManager(data_file=data_file)
+            real_sm = SecurityManager(data_file=data_file, password="test_password_integration")
             mock_sm_class.return_value = real_sm
             
             app = OneTimePasswordApp()
@@ -221,7 +221,7 @@ class TestEndToEndIntegration:
              patch('src.main.DockerManager') as mock_docker_class:
             
             # 実際のSecurityManagerインスタンスを作成
-            real_sm = SecurityManager(data_file=data_file)
+            real_sm = SecurityManager(data_file=data_file, password="test_password_integration")
             mock_sm_class.return_value = real_sm
             
             app = OneTimePasswordApp()

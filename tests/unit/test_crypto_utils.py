@@ -14,7 +14,8 @@ class TestCryptoUtils:
     @pytest.fixture
     def crypto_utils(self):
         """テスト用CryptoUtilsインスタンス"""
-        return CryptoUtils()
+        # テスト用の固定パスワードを使用
+        return CryptoUtils("test_password_for_unit_tests")
 
     def test_encrypt_normal(self, crypto_utils):
         """TC-CRYPTO-001: 正常な暗号化"""
@@ -166,15 +167,17 @@ class TestCryptoUtils:
         assert decrypted == test_data
 
     def test_none_password(self):
-        """TC-CRYPTO-015: Noneパスワードでの暗号化（デフォルトパスワード使用）"""
-        crypto_utils = CryptoUtils(None)
-        
-        test_data = "test_secret"
-        
-        encrypted = crypto_utils.encrypt(test_data)
-        decrypted = crypto_utils.decrypt(encrypted)
-        
-        assert decrypted == test_data
+        """TC-CRYPTO-015: Noneパスワードで環境変数から取得"""
+        # 環境変数を設定してテスト
+        with patch.dict('os.environ', {'OTP_MASTER_PASSWORD': 'env_test_password'}):
+            crypto_utils = CryptoUtils(None)
+            
+            test_data = "test_secret"
+            
+            encrypted = crypto_utils.encrypt(test_data)
+            decrypted = crypto_utils.decrypt(encrypted)
+            
+            assert decrypted == test_data
 
     def test_different_passwords_produce_different_encryption(self):
         """TC-CRYPTO-016: 異なるパスワードで異なる暗号化結果"""

@@ -8,6 +8,7 @@ import sys
 import os
 import time
 import signal
+import threading
 from typing import List, Dict, Any
 
 # プロジェクトのルートディレクトリをPythonパスに追加
@@ -30,6 +31,7 @@ class OneTimePasswordApp:
         self.camera_reader = CameraQRReader()
         self.docker_manager = DockerManager()
         self.running = True
+        self.qr_detected_event = threading.Event()
         
         # シグナルハンドラーを設定
         signal.signal(signal.SIGINT, self._signal_handler)
@@ -58,11 +60,13 @@ class OneTimePasswordApp:
         print("Ctrl+C でキャンセル")
         
         qr_data = None
+        self.qr_detected_event.clear()
         
         def on_qr_detected(data):
             nonlocal qr_data
             qr_data = data
             print(f"\nQRコードを検出しました: {data}")
+            self.qr_detected_event.set()
         
         def on_error(error):
             print(f"エラー: {error}")
@@ -70,9 +74,9 @@ class OneTimePasswordApp:
         try:
             self.camera_reader.start_qr_detection(on_qr_detected, on_error)
             
-            # QRコードが検出されるまで待機
-            while self.running and qr_data is None:
-                time.sleep(0.1)
+            # QRコードが検出されるまで待機（効率的なイベント待機）
+            while self.running and not self.qr_detected_event.is_set():
+                self.qr_detected_event.wait(timeout=0.1)
             
             if qr_data:
                 return self._process_qr_data(qr_data)
@@ -174,15 +178,10 @@ class OneTimePasswordApp:
         finally:
             self.otp_generator.stop_realtime_display()
     
-    def list_accounts(self):
-        """アカウント一覧を表示"""
-        accounts = self.security_manager.list_accounts()
-        
+    def _print_accounts_table(self, accounts: List[Dict[str, Any]]):
+        """アカウント情報をテーブル形式で表示（共通メソッド）"""
         if not accounts:
-            print("登録されているアカウントがありません")
             return
-        
-        print(f"登録済みアカウント ({len(accounts)}件):")
         
         # 各列の最大幅を計算
         max_id_width = max(len(account['id']) for account in accounts)
@@ -205,6 +204,17 @@ class OneTimePasswordApp:
         for account in accounts:
             created_at = account['created_at'][:19].replace('T', ' ')
             print(f"{account['id']:<{id_width}} {account['account_name']:<{name_width}} {account['issuer']:<{issuer_width}} {created_at:<{created_width}}")
+    
+    def list_accounts(self):
+        """アカウント一覧を表示"""
+        accounts = self.security_manager.list_accounts()
+        
+        if not accounts:
+            print("登録されているアカウントがありません")
+            return
+        
+        print(f"登録済みアカウント ({len(accounts)}件):")
+        self._print_accounts_table(accounts)
     
     def delete_account(self, account_id: str):
         """アカウントを削除"""
@@ -250,28 +260,7 @@ class OneTimePasswordApp:
             return
         
         print(f"検索結果 ({len(accounts)}件):")
-        
-        # 各列の最大幅を計算
-        max_id_width = max(len(account['id']) for account in accounts)
-        max_name_width = max(len(account['account_name']) for account in accounts)
-        max_issuer_width = max(len(account['issuer']) for account in accounts)
-        
-        # 最小幅を設定（ヘッダー名の長さ以上）
-        id_width = max(max_id_width, 2)  # ID列
-        name_width = max(max_name_width, 12)  # Account Name列
-        issuer_width = max(max_issuer_width, 7)  # Issuer列
-        created_width = 19  # Created列（固定）
-        
-        # 総幅を計算（列間のスペース3文字×3 = 9文字）
-        total_width = id_width + name_width + issuer_width + created_width + 9
-        
-        print("-" * total_width)
-        print(f"{'ID':<{id_width}} {'Account Name':<{name_width}} {'Issuer':<{issuer_width}} {'Created':<{created_width}}")
-        print("-" * total_width)
-        
-        for account in accounts:
-            created_at = account['created_at'][:19].replace('T', ' ')
-            print(f"{account['id']:<{id_width}} {account['account_name']:<{name_width}} {account['issuer']:<{issuer_width}} {created_at:<{created_width}}")
+        self._print_accounts_table(accounts)
     
     def setup_environment(self):
         """環境をセットアップ"""

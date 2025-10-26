@@ -156,6 +156,55 @@ poetry run python src/main.py status
 - **Memory Clearing**: Sensitive data is cleared immediately after use
 - **Permission Management**: Appropriate file permission settings
 - **Camera Access**: Access camera with minimal permissions
+- **Environment Variables**: Master password is securely managed through environment variables
+
+### 🔐 Master Password Configuration (Important)
+
+The application uses a master password to encrypt security codes.
+Configure the master password using one of the following methods:
+
+#### Method 1: Environment Variable (Recommended)
+
+```bash
+# Add to ~/.zshrc or ~/.bashrc
+export OTP_MASTER_PASSWORD="your_strong_password_here"
+
+# Apply settings
+source ~/.zshrc
+```
+
+#### Method 2: Password File (More Secure)
+
+```bash
+# Create password file with restricted permissions
+echo "your_strong_password_here" > ~/.otp_password
+chmod 600 ~/.otp_password
+
+# Add to ~/.zshrc or ~/.bashrc
+export OTP_PASSWORD_FILE="$HOME/.otp_password"
+
+# Apply settings
+source ~/.zshrc
+```
+
+#### Method 3: Interactive Input
+
+If environment variables are not configured, you will be prompted to enter the password when the application starts.
+
+#### Optional: Custom Salt Configuration
+
+To customize the default salt:
+
+```bash
+# Add to ~/.zshrc or ~/.bashrc
+export OTP_SALT="your_custom_salt_value"
+```
+
+**⚠️ Security Warning**:
+- Use a strong, difficult-to-guess master password
+- When using a password file, ensure proper file permissions (600) are set
+- Never commit environment variables or password files to version control systems
+- Changing the password may make existing data unrecoverable
 
 ## 🐛 Troubleshooting
 

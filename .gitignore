@@ -45,3 +45,9 @@ Thumbs.db
 
 # Docker
 .dockerignore
+
+# Coverage reports
+coverage.xml
+htmlcov/
+.coverage
+.coverage.*

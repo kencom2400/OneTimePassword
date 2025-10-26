@@ -295,7 +295,8 @@ class SecurityManager:
 
 def test_security_manager():
     """セキュリティマネージャーのテスト"""
-    manager = SecurityManager("test_accounts.json")
+    # テスト用の固定パスワードを使用
+    manager = SecurityManager("test_accounts.json", password="test_password_for_demo")
     
     print("セキュリティマネージャーテスト")
     print("-" * 40)
