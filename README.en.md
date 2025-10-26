@@ -341,7 +341,7 @@ OneTimePassword/
 ├── LICENSE                      # License file
 ├── README.md                    # This file (Japanese)
 ├── README.en.md                 # This file (English)
-├── Requirement.txt              # Project requirements
+├── REQUIREMENTS_OVERVIEW.md     # High-level project requirements
 └── requirements_specification.md # Requirements specification
 ```
 

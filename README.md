@@ -340,7 +340,7 @@ OneTimePassword/
 ├── .gitignore                   # Git除外設定
 ├── LICENSE                      # ライセンスファイル
 ├── README.md                    # このファイル
-├── Requirement.txt              # プロジェクト要件
+├── REQUIREMENTS_OVERVIEW.md     # プロジェクト要件概要
 └── requirements_specification.md # 要件定義書
 ```
 
