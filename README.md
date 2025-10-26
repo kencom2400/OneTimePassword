@@ -1,0 +1,2 @@
+# OneTimePassword
+Authenticatorで取得できる６桁のワンタイムパスワードを生成する
