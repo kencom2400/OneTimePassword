@@ -13,18 +13,15 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        python-version: ['3.9', '3.10', '3.11', '3.12', '3.13']
     
     steps:
     - name: リポジトリのチェックアウト
       uses: actions/checkout@v4
     
-    - name: Python ${{ matrix.python-version }} のセットアップ
+    - name: Python 3.13 のセットアップ
       uses: actions/setup-python@v5
       with:
-        python-version: ${{ matrix.python-version }}
+        python-version: '3.13'
     
     - name: Poetryのインストール
       uses: snok/install-poetry@v1
@@ -37,9 +34,9 @@ jobs:
       uses: actions/cache@v4
       with:
         path: .venv
-        key: venv-${{ runner.os }}-${{ matrix.python-version }}-${{ hashFiles('**/poetry.lock') }}
+        key: venv-${{ runner.os }}-3.13-${{ hashFiles('**/poetry.lock') }}
         restore-keys: |
-          venv-${{ runner.os }}-${{ matrix.python-version }}-
+          venv-${{ runner.os }}-3.13-
     
     - name: 依存関係のインストール
       run: |
@@ -60,7 +57,6 @@ jobs:
     
     - name: カバレッジレポートのアップロード
       uses: actions/upload-artifact@v4
-      if: matrix.python-version == '3.13'
       with:
         name: coverage-report
         path: |
@@ -69,7 +65,6 @@ jobs:
     
     - name: カバレッジバッジの更新 (codecov)
       uses: codecov/codecov-action@v4
-      if: matrix.python-version == '3.13'
       with:
         files: ./coverage.xml
         fail_ci_if_error: false
