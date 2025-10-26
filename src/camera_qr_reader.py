@@ -278,6 +278,8 @@ class CameraQRReader:
         Returns:
             有効な場合True
         """
+        if qr_data is None:
+            return False
         return qr_data.startswith("otpauth-migration://offline?data=")
     
     def get_camera_info(self) -> dict:

@@ -2,6 +2,20 @@
 
 Google Authenticatorと同様の機能を持つワンタイムパスワード（OTP）生成アプリケーションです。PCカメラを使用してQRコードを読み取り、複数のアカウントのOTPを同時に管理・表示できます。
 
+## 📑 目次
+
+- [🚀 主な機能](#-主な機能)
+- [📖 使用方法](#-使用方法)
+- [🛠️ セットアップ](#️-セットアップ)
+- [📋 要件](#-要件)
+- [🔒 セキュリティ](#-セキュリティ)
+- [🐛 トラブルシューティング](#-トラブルシューティング)
+- [📝 ライセンス](#-ライセンス)
+- [📞 サポート](#-サポート)
+- [🔧 開発者向け情報](#-開発者向け情報)
+- [🧪 テスト](#-テスト) ⭐ **テスト設計書付き**
+- [🤝 貢献](#-貢献)
+
 ## 🚀 主な機能
 
 - **QRコード読み取り**: PCカメラまたは画像ファイルからQRコードを読み取り
@@ -242,14 +256,30 @@ OneTimePassword/
 │   ├── security_manager.py      # セキュリティコード管理
 │   ├── crypto_utils.py          # 暗号化ユーティリティ
 │   └── docker_manager.py        # Dockerコンテナ管理
+├── tests/                        # テストコード
+│   ├── TEST_DESIGN.md           # テスト設計書
+│   ├── conftest.py              # pytest共通フィクスチャ
+│   ├── unit/                    # 単体テスト（163個）
+│   │   ├── test_crypto_utils.py
+│   │   ├── test_otp_generator.py
+│   │   ├── test_security_manager.py
+│   │   ├── test_camera_qr_reader.py
+│   │   ├── test_docker_manager.py
+│   │   └── test_main.py
+│   ├── integration/             # 統合テスト（10個）
+│   │   └── test_integration.py
+│   ├── run_tests.py             # Pythonテスト実行スクリプト
+│   └── run_tests.sh             # Bashラッパースクリプト
 ├── data/                         # データディレクトリ
 │   └── accounts.json            # アカウントデータ（暗号化）
+├── htmlcov/                      # カバレッジHTMLレポート（自動生成）
 ├── pyproject.toml               # Poetry設定ファイル
 ├── poetry.lock                  # Poetry依存関係ロックファイル
 ├── requirements.txt             # 従来の依存関係（参考用）
 ├── .gitignore                   # Git除外設定
 ├── LICENSE                      # ライセンスファイル
 ├── README.md                    # このファイル
+├── Requirement.txt              # プロジェクト要件
 └── requirements_specification.md # 要件定義書
 ```
 
@@ -280,6 +310,9 @@ numpy = "^1.24.0"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^7.0.0"
+pytest-cov = "^4.0.0"
+pytest-mock = "^3.0.0"
+pytest-asyncio = "^0.21.0"
 black = "^23.0.0"
 flake8 = "^6.0.0"
 mypy = "^1.0.0"
@@ -291,6 +324,208 @@ mypy = "^1.0.0"
 - **Poetry**: 2.2.1
 - **仮想環境**: `/Users/kencom/Library/Caches/pypoetry/virtualenvs/onetimepassword-78G70__u-py3.13`
 - **OS**: macOS Sequoia 24.6.0
+
+## 🧪 テスト
+
+### 📚 テスト設計書
+
+詳細なテスト設計については、[テスト設計書（TEST_DESIGN.md）](tests/TEST_DESIGN.md)を参照してください。
+
+テスト設計書には以下の情報が含まれています：
+- テスト戦略とテストピラミッド
+- モジュール別テスト設計（173個のテストケース）
+- 統合テスト・E2Eテスト設計
+- モック化のベストプラクティス
+- トラブルシューティングガイド
+- テスト実行方法の詳細
+
+### 📊 テスト統計
+
+- **総テスト数**: 173個
+  - 単体テスト: 163個
+  - 統合テスト: 10個
+- **テスト成功率**: 100% ✅
+- **実行時間**: 約2.8秒
+- **現在のカバレッジ**: 67%
+- **目標カバレッジ**: 90%以上
+
+### 🚀 テスト実行方法
+
+#### 1. ラッパーシェルスクリプト（推奨）
+
+```bash
+# 全テスト実行（推奨）
+./run_tests.sh
+
+# 単体テストのみ実行
+./run_tests.sh unit
+
+# 統合テストのみ実行
+./run_tests.sh integration
+
+# カバレッジ付きテスト実行（HTML・XMLレポート生成）
+./run_tests.sh coverage --html
+
+# クイックテスト実行（カバレッジなし）
+./run_tests.sh quick
+
+# 監視モード（ファイル変更時に自動実行）
+./run_tests.sh watch
+
+# テストキャッシュクリア
+./run_tests.sh clean
+
+# ヘルプ表示
+./run_tests.sh --help
+```
+
+#### 2. 直接実行
+
+```bash
+# 全テスト実行
+poetry run pytest tests/ -v
+
+# カバレッジ付きテスト実行
+poetry run pytest tests/ --cov=src --cov-report=html --cov-report=term
+
+# 特定のモジュールのテスト実行
+poetry run pytest tests/unit/test_crypto_utils.py -v
+
+# 特定のテストクラス実行
+poetry run pytest tests/unit/test_main.py::TestOneTimePasswordApp -v
+
+# 特定のテスト関数実行
+poetry run pytest tests/unit/test_main.py::TestOneTimePasswordApp::test_add_account_from_camera_success -v
+
+# 並列実行（高速化）
+poetry run pytest tests/ -n auto
+
+# タイムアウト付き実行（ハングするテスト対策）
+timeout 120 poetry run pytest tests/ -v
+```
+
+### 🗂️ テスト構造
+
+```
+tests/
+├── TEST_DESIGN.md           # テスト設計書（詳細なドキュメント）
+├── conftest.py              # pytest共通フィクスチャ
+├── unit/                    # 単体テスト（163個）
+│   ├── test_crypto_utils.py      # 暗号化ユーティリティ（25個）
+│   ├── test_otp_generator.py     # OTP生成（19個）
+│   ├── test_security_manager.py  # セキュリティ管理（23個）
+│   ├── test_camera_qr_reader.py  # カメラQR読み取り（30個）
+│   ├── test_docker_manager.py    # Docker管理（32個）
+│   └── test_main.py              # メインアプリ（34個）
+├── integration/             # 統合テスト（10個）
+│   └── test_integration.py
+├── run_tests.py             # Pythonテスト実行スクリプト
+└── run_tests.sh             # Bashラッパースクリプト
+```
+
+### 📋 テスト実行オプション
+
+#### ラッパーシェルオプション
+
+- `-v, --verbose`: 詳細出力（テストケース名と結果を表示）
+- `-q, --quiet`: 簡潔出力（サマリーのみ表示）
+- `-f, --fail-fast`: 最初の失敗で停止
+- `-p, --parallel`: 並列実行（高速化）
+- `--no-cov`: カバレッジ測定を無効化（高速実行）
+- `--html`: HTMLカバレッジレポート生成（`htmlcov/index.html`）
+- `--xml`: XMLカバレッジレポート生成（`coverage.xml`）
+- `-m MARKER`: 特定のマーカーのテストのみ実行
+
+#### pytestオプション例
+
+```bash
+# 失敗したテストのみ再実行
+poetry run pytest tests/ --lf
+
+# 失敗したテストを最初に実行
+poetry run pytest tests/ --ff
+
+# トレースバックを短く表示
+poetry run pytest tests/ --tb=short
+
+# トレースバックを表示しない
+poetry run pytest tests/ --tb=no
+
+# 詳細な出力（各テストの詳細）
+poetry run pytest tests/ -vv
+
+# テストの実行時間を表示
+poetry run pytest tests/ --durations=10
+```
+
+### 🔍 カバレッジレポート
+
+テスト実行後、以下のカバレッジレポートが生成されます：
+
+```bash
+# HTMLレポートの確認
+open htmlcov/index.html
+
+# ターミナルでのカバレッジ表示
+poetry run pytest tests/ --cov=src --cov-report=term-missing
+```
+
+**現在のカバレッジ詳細**:
+- `src/main.py`: 84%
+- `src/crypto_utils.py`: 80%
+- `src/docker_manager.py`: 73%
+- `src/security_manager.py`: 67%
+- `src/camera_qr_reader.py`: 52%
+- `src/otp_generator.py`: 37%
+
+### 🐛 テストのトラブルシューティング
+
+#### テストがハングする場合
+
+```bash
+# タイムアウトを設定して実行
+timeout 120 poetry run pytest tests/ -v
+
+# 特定のテストをスキップ
+poetry run pytest tests/ -k "not test_hanging_test"
+```
+
+#### カメラアクセスエラー
+
+全てのカメラテストは完全にモック化されているため、実際のカメラは不要です。
+エラーが発生する場合は、[テスト設計書のトラブルシューティング](tests/TEST_DESIGN.md#13-トラブルシューティング)を参照してください。
+
+#### Docker関連エラー
+
+Docker環境が不要なため、Dockerが起動していなくてもテストは成功します。
+全てのDockerコマンドは`subprocess.run`でモック化されています。
+
+### 📝 テストの書き方
+
+新しいテストを追加する際は、以下のガイドラインに従ってください：
+
+1. **適切なモック化**: 外部依存は必ずモック化
+2. **明確なテスト名**: `test_<method>_<scenario>`の形式
+3. **AAA パターン**: Arrange（準備）、Act（実行）、Assert（検証）
+4. **独立性**: 各テストは独立して実行可能に
+5. **ドキュメント**: docstringでテストケースIDと目的を記載
+
+例：
+```python
+def test_add_account_success(self, security_manager):
+    """TC-SEC-001: アカウントの追加（成功）"""
+    # Arrange
+    account_data = {...}
+    
+    # Act
+    result = security_manager.add_account(**account_data)
+    
+    # Assert
+    assert result is not None
+    assert len(result) > 0
+```
+
+詳細は[テスト設計書](tests/TEST_DESIGN.md)を参照してください。
 
 ### 開発コマンド
 

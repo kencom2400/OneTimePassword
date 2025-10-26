@@ -254,7 +254,7 @@ class DockerManager:
             # または: otpauth://totp/[Device名]@[アカウント名]?algorithm=SHA1&digits=6&issuer=[IssueName]&period=30&secret=[SecurityCode]
             
             # パターン1: @が含まれない形式
-            pattern1 = r'otpauth://totp/([^?]+)\?algorithm=([^&]+)&digits=(\d+)&issuer=([^&]+)&period=(\d+)&secret=([^&\s]+)'
+            pattern1 = r'otpauth://totp/([^@?]+)\?algorithm=([^&]+)&digits=(\d+)&issuer=([^&]+)&period=(\d+)&secret=([^&\s]+)'
             match1 = re.search(pattern1, output)
             
             if match1:
