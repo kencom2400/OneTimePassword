@@ -1,0 +1,115 @@
+name: CI - Lint & コード品質チェック
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+  pull_request:
+    branches:
+      - main
+      - develop
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: リポジトリのチェックアウト
+      uses: actions/checkout@v4
+    
+    - name: Python 3.11 のセットアップ
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+    
+    - name: Poetryのインストール
+      uses: snok/install-poetry@v1
+      with:
+        version: latest
+        virtualenvs-create: true
+        virtualenvs-in-project: true
+    
+    - name: Poetry依存関係のキャッシュ
+      uses: actions/cache@v3
+      with:
+        path: .venv
+        key: venv-${{ runner.os }}-3.11-${{ hashFiles('**/poetry.lock') }}
+        restore-keys: |
+          venv-${{ runner.os }}-3.11-
+    
+    - name: 依存関係のインストール
+      run: |
+        poetry install --no-interaction --no-ansi
+    
+    - name: Black フォーマットチェック
+      run: |
+        echo "::group::Black - コードフォーマットチェック"
+        poetry run black --check --diff src/ tests/
+        echo "::endgroup::"
+      continue-on-error: false
+    
+    - name: Flake8 スタイルチェック
+      run: |
+        echo "::group::Flake8 - コードスタイルチェック"
+        poetry run flake8 src/ tests/ --count --statistics --show-source
+        echo "::endgroup::"
+      continue-on-error: false
+    
+    - name: MyPy 型チェック
+      run: |
+        echo "::group::MyPy - 型アノテーションチェック"
+        poetry run mypy src/ --ignore-missing-imports --show-error-codes
+        echo "::endgroup::"
+      continue-on-error: false
+    
+    - name: コード品質レポートの生成
+      if: always()
+      run: |
+        echo "# コード品質チェック結果" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "## Black フォーマット" >> $GITHUB_STEP_SUMMARY
+        if poetry run black --check src/ tests/ > /dev/null 2>&1; then
+          echo "✅ すべてのファイルが正しくフォーマットされています" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "❌ フォーマットが必要なファイルがあります" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          poetry run black --check src/ tests/ 2>&1 | head -20 >> $GITHUB_STEP_SUMMARY || true
+          echo '```' >> $GITHUB_STEP_SUMMARY
+        fi
+        echo "" >> $GITHUB_STEP_SUMMARY
+        
+        echo "## Flake8 スタイル" >> $GITHUB_STEP_SUMMARY
+        if poetry run flake8 src/ tests/ > /dev/null 2>&1; then
+          echo "✅ スタイルガイドに準拠しています" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "❌ スタイル違反が見つかりました" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          poetry run flake8 src/ tests/ 2>&1 | head -20 >> $GITHUB_STEP_SUMMARY || true
+          echo '```' >> $GITHUB_STEP_SUMMARY
+        fi
+        echo "" >> $GITHUB_STEP_SUMMARY
+        
+        echo "## MyPy 型チェック" >> $GITHUB_STEP_SUMMARY
+        if poetry run mypy src/ --ignore-missing-imports > /dev/null 2>&1; then
+          echo "✅ 型アノテーションは正しく設定されています" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "⚠️ 型チェックで警告が見つかりました" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          poetry run mypy src/ --ignore-missing-imports 2>&1 | head -20 >> $GITHUB_STEP_SUMMARY || true
+          echo '```' >> $GITHUB_STEP_SUMMARY
+        fi
+    
+    - name: コード統計情報
+      if: always()
+      run: |
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "## コード統計" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "| 項目 | 値 |" >> $GITHUB_STEP_SUMMARY
+        echo "|------|-----|" >> $GITHUB_STEP_SUMMARY
+        echo "| Pythonファイル数 | $(find src tests -name '*.py' | wc -l) |" >> $GITHUB_STEP_SUMMARY
+        echo "| 総行数 | $(find src tests -name '*.py' -exec wc -l {} + | tail -1 | awk '{print $1}') |" >> $GITHUB_STEP_SUMMARY
+        echo "| srcディレクトリ | $(find src -name '*.py' | wc -l) ファイル |" >> $GITHUB_STEP_SUMMARY
+        echo "| testsディレクトリ | $(find tests -name '*.py' | wc -l) ファイル |" >> $GITHUB_STEP_SUMMARY
+

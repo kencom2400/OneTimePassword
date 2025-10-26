@@ -1,0 +1,30 @@
+[flake8]
+# Black互換設定
+max-line-length = 88
+extend-ignore = E203, E266, E501, W503
+exclude =
+    .git,
+    __pycache__,
+    .pytest_cache,
+    .venv,
+    venv,
+    htmlcov,
+    dist,
+    build,
+    *.egg-info
+
+# 1ファイルあたりの複雑度の最大値
+max-complexity = 10
+
+# インポート順序のチェック
+import-order-style = google
+application-import-names = src
+
+# ドキュメント文字列のチェック
+docstring-convention = google
+
+# 統計情報の表示
+count = True
+statistics = True
+show-source = True
+
