@@ -1,0 +1,77 @@
+name: CI - ユニット・統合テスト
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+  pull_request:
+    branches:
+      - main
+      - develop
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.8', '3.9', '3.10', '3.11']
+    
+    steps:
+    - name: リポジトリのチェックアウト
+      uses: actions/checkout@v4
+    
+    - name: Python ${{ matrix.python-version }} のセットアップ
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ matrix.python-version }}
+    
+    - name: Poetryのインストール
+      uses: snok/install-poetry@v1
+      with:
+        version: latest
+        virtualenvs-create: true
+        virtualenvs-in-project: true
+    
+    - name: Poetry依存関係のキャッシュ
+      uses: actions/cache@v3
+      with:
+        path: .venv
+        key: venv-${{ runner.os }}-${{ matrix.python-version }}-${{ hashFiles('**/poetry.lock') }}
+        restore-keys: |
+          venv-${{ runner.os }}-${{ matrix.python-version }}-
+    
+    - name: 依存関係のインストール
+      run: |
+        poetry install --no-interaction --no-ansi
+    
+    - name: システム依存関係のインストール (OpenCV用)
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y libgl1-mesa-glx libglib2.0-0
+    
+    - name: 単体テストの実行
+      run: |
+        poetry run pytest tests/unit/ -v --cov=src --cov-report=term-missing --cov-report=xml --cov-report=html
+    
+    - name: 統合テストの実行
+      run: |
+        poetry run pytest tests/integration/ -v
+    
+    - name: カバレッジレポートのアップロード
+      uses: actions/upload-artifact@v3
+      if: matrix.python-version == '3.11'
+      with:
+        name: coverage-report
+        path: |
+          htmlcov/
+          coverage.xml
+    
+    - name: カバレッジバッジの更新 (codecov)
+      uses: codecov/codecov-action@v3
+      if: matrix.python-version == '3.11'
+      with:
+        files: ./coverage.xml
+        fail_ci_if_error: false
+        verbose: true
+
