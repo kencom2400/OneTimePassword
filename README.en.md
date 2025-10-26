@@ -183,15 +183,28 @@ export OTP_MASTER_PASSWORD="your_strong_password_here"
 source ~/.zshrc
 ```
 
-#### Method 2: Password File (More Secure)
+#### Method 2: Password File (More Secure - Recommended)
+
+**Using default file `~/.otp_password` (no environment variable needed):**
 
 ```bash
 # Create password file with restricted permissions
 echo "your_strong_password_here" > ~/.otp_password
 chmod 600 ~/.otp_password
 
+# That's it! No environment variable needed
+poetry run python src/main.py show --all
+```
+
+**Using custom password file location:**
+
+```bash
+# Create password file at custom location
+echo "your_strong_password_here" > /path/to/custom_password
+chmod 600 /path/to/custom_password
+
 # Add to ~/.zshrc or ~/.bashrc
-export OTP_PASSWORD_FILE="$HOME/.otp_password"
+export OTP_PASSWORD_FILE="/path/to/custom_password"
 
 # Apply settings
 source ~/.zshrc
@@ -199,7 +212,7 @@ source ~/.zshrc
 
 #### Method 3: Interactive Input
 
-If environment variables are not configured, you will be prompted to enter the password when the application starts.
+If neither environment variables nor password file are configured, you will be prompted to enter the password when the application starts.
 
 #### Optional: Custom Salt Configuration
 

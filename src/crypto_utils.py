@@ -38,7 +38,8 @@ class CryptoUtils:
         優先順位:
         1. 環境変数 OTP_MASTER_PASSWORD
         2. 環境変数 OTP_PASSWORD_FILE からファイルパスを読み込み
-        3. ユーザー入力（インタラクティブモード時のみ）
+        3. デフォルトファイル ~/.otp_password
+        4. ユーザー入力（インタラクティブモード時のみ）
         
         Returns:
             パスワード文字列
@@ -48,7 +49,7 @@ class CryptoUtils:
         if password:
             return password
         
-        # 2. ファイルから取得
+        # 2. 環境変数で指定されたファイルから取得
         password_file = os.environ.get("OTP_PASSWORD_FILE", "")
         if password_file and os.path.exists(password_file):
             try:
@@ -57,7 +58,16 @@ class CryptoUtils:
             except Exception as e:
                 print(f"警告: パスワードファイルの読み込みに失敗: {str(e)}")
         
-        # 3. インタラクティブモードの場合のみユーザー入力
+        # 3. デフォルトファイル ~/.otp_password から取得
+        default_password_file = os.path.expanduser("~/.otp_password")
+        if os.path.exists(default_password_file):
+            try:
+                with open(default_password_file, 'r') as f:
+                    return f.read().strip()
+            except Exception as e:
+                print(f"警告: デフォルトパスワードファイルの読み込みに失敗: {str(e)}")
+        
+        # 4. インタラクティブモードの場合のみユーザー入力
         # 非インタラクティブモード（テストやCI/CD）では空文字列を返す
         if os.isatty(0):  # 標準入力が端末かチェック
             try:

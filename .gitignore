@@ -35,6 +35,10 @@ ENV/
 data/
 *.json
 
+# Password files (sensitive)
+.otp_password
+*otp_password
+
 # Logs
 *.log
 logs/

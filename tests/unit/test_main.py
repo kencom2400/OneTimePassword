@@ -149,30 +149,30 @@ class TestOneTimePasswordApp:
             {'otp': '789012', 'account_name': 'test2@example.com', 'remaining_seconds': 20}
         ]
         
-        app.security_manager.list_accounts.return_value = mock_accounts
+        app.security_manager.get_all_accounts.return_value = mock_accounts
         app.otp_generator.start_realtime_display.return_value = None
         app.running = False  # ループを終了させる
         
         app.show_otp(show_all=True)
         
-        app.security_manager.list_accounts.assert_called_once()
+        app.security_manager.get_all_accounts.assert_called_once()
         app.otp_generator.start_realtime_display.assert_called_once_with(mock_accounts)
 
     def test_show_otp_no_accounts(self, app):
         """TC-MAIN-008: OTP表示（アカウントなし）"""
-        app.security_manager.list_accounts.return_value = []
+        app.security_manager.get_all_accounts.return_value = []
         app.running = False  # ループを終了させる
         
         app.show_otp(show_all=True)
         
-        app.security_manager.list_accounts.assert_called_once()
+        app.security_manager.get_all_accounts.assert_called_once()
         app.otp_generator.start_realtime_display.assert_not_called()
 
     def test_show_otp_generation_error(self, app):
         """TC-MAIN-009: OTP生成エラー"""
         mock_accounts = [{'id': 'account1', 'account_name': 'test@example.com', 'secret': 'SECRET1'}]
         
-        app.security_manager.list_accounts.return_value = mock_accounts
+        app.security_manager.get_all_accounts.return_value = mock_accounts
         app.otp_generator.start_realtime_display.side_effect = Exception("Generation failed")
         app.running = False  # ループを終了させる
         
@@ -180,7 +180,7 @@ class TestOneTimePasswordApp:
         with pytest.raises(Exception, match="Generation failed"):
             app.show_otp(show_all=True)
         
-        app.security_manager.list_accounts.assert_called_once()
+        app.security_manager.get_all_accounts.assert_called_once()
         app.otp_generator.start_realtime_display.assert_called_once()
 
     def test_list_accounts_success(self, app):

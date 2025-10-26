@@ -139,8 +139,8 @@ class OneTimePasswordApp:
         """OTPを表示"""
         try:
             if show_all:
-                # 全アカウントのOTPを表示
-                accounts = self.security_manager.list_accounts()
+                # 全アカウントのOTPを表示（復号化済み・secretを含む）
+                accounts = self.security_manager.get_all_accounts()
                 if not accounts:
                     print("登録されているアカウントがありません")
                     return False

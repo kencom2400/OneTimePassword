@@ -183,15 +183,28 @@ export OTP_MASTER_PASSWORD="your_strong_password_here"
 source ~/.zshrc
 ```
 
-#### 方法2: パスワードファイルで設定（より安全）
+#### 方法2: パスワードファイルで設定（より安全・推奨）
+
+**デフォルトファイル `~/.otp_password` を使用（環境変数不要）:**
 
 ```bash
 # パスワードファイルを作成（権限を制限）
 echo "your_strong_password_here" > ~/.otp_password
 chmod 600 ~/.otp_password
 
+# これだけで完了！環境変数の設定は不要です
+poetry run python src/main.py show --all
+```
+
+**カスタムパスワードファイルを使用する場合:**
+
+```bash
+# 任意の場所にパスワードファイルを作成
+echo "your_strong_password_here" > /path/to/custom_password
+chmod 600 /path/to/custom_password
+
 # ~/.zshrc または ~/.bashrc に追加
-export OTP_PASSWORD_FILE="$HOME/.otp_password"
+export OTP_PASSWORD_FILE="/path/to/custom_password"
 
 # 設定を反映
 source ~/.zshrc
@@ -199,7 +212,7 @@ source ~/.zshrc
 
 #### 方法3: インタラクティブ入力
 
-環境変数を設定していない場合、アプリケーション起動時にパスワードの入力を求められます。
+環境変数もパスワードファイルも設定していない場合、アプリケーション起動時にパスワードの入力を求められます。
 
 #### オプション: カスタムソルトの設定
 
