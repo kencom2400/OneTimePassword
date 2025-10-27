@@ -74,8 +74,8 @@ class CryptoUtils:
         if os.isatty(0):  # 標準入力が端末かチェック
             try:
                 return getpass.getpass("マスターパスワードを入力してください: ")
-            except Exception:
-                pass
+            except Exception as e:
+                print(f"警告: インタラクティブなパスワード入力に失敗しました: {str(e)}")
 
         return ""
 
