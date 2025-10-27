@@ -170,13 +170,13 @@ class TestDockerManager:
                 assert "Container failed" in output
 
     def test_parse_otpauth_output_pattern1(self, docker_manager):
-        """TC-DM-014: otpauth出力解析（パターン1: @なし）"""
+        """TC-DM-014: otpauth出力解析（シンプル形式: issuerパラメータあり）"""
         output = "otpauth://totp/kencom2400?algorithm=SHA1&digits=6&issuer=GitHub&period=30&secret=VHYHKC3QB22RE5HE"
 
         result = docker_manager.parse_otpauth_output(output)
 
         assert result is not None
-        assert result["device_name"] == "kencom2400"
+        assert result["device_name"] == "GitHub"  # issuerをdevice_nameとして使用
         assert result["account_name"] == "kencom2400"
         assert result["algorithm"] == "SHA1"
         assert result["digits"] == "6"
@@ -185,13 +185,13 @@ class TestDockerManager:
         assert result["secret"] == "VHYHKC3QB22RE5HE"
 
     def test_parse_otpauth_output_pattern2(self, docker_manager):
-        """TC-DM-015: otpauth出力解析（パターン2: @あり）"""
-        output = "otpauth://totp/DeviceName@AccountName?algorithm=SHA1&digits=6&issuer=TestService&period=30&secret=JBSWY3DPEHPK3PXP"
+        """TC-DM-015: otpauth出力解析（標準形式: issuer:account）"""
+        output = "otpauth://totp/TestService:AccountName?algorithm=SHA1&digits=6&issuer=TestService&period=30&secret=JBSWY3DPEHPK3PXP"
 
         result = docker_manager.parse_otpauth_output(output)
 
         assert result is not None
-        assert result["device_name"] == "DeviceName"
+        assert result["device_name"] == "TestService"
         assert result["account_name"] == "AccountName"
         assert result["algorithm"] == "SHA1"
         assert result["digits"] == "6"
@@ -215,22 +215,53 @@ class TestDockerManager:
         result = docker_manager.parse_otpauth_output(output)
 
         assert result is not None
-        assert result["device_name"] == "Google Account"
+        assert result["device_name"] == "Google"  # issuerをdevice_nameとして使用
         assert result["account_name"] == "Google Account"
         assert result["issuer"] == "Google"
         assert result["secret"] == "JBSWY3DPEHPK3PXP"
 
-    def test_parse_otpauth_output_complex_account_name(self, docker_manager):
-        """TC-DM-016b: otpauth出力解析（複雑なアカウント名）"""
-        # デバイス名@複数の@を含むアカウント名
-        output = "otpauth://totp/MyDevice@user@example.com?algorithm=SHA1&digits=6&issuer=Service&period=30&secret=JBSWY3DPEHPK3PXP"
+    def test_parse_otpauth_output_email_account_with_issuer(self, docker_manager):
+        """TC-DM-016b: otpauth出力解析（メールアドレスアカウント名、issuerあり）"""
+        # メールアドレスをアカウント名として使用、issuerパラメータあり
+        output = "otpauth://totp/test@example.com?algorithm=SHA1&digits=6&issuer=Google&period=30&secret=JBSWY3DPEHPK3PXP"
 
         result = docker_manager.parse_otpauth_output(output)
 
         assert result is not None
-        assert result["device_name"] == "MyDevice"
-        assert result["account_name"] == "user@example.com"
-        assert result["issuer"] == "Service"
+        assert result["device_name"] == "Google"  # issuerをdevice_nameとして使用
+        assert (
+            result["account_name"] == "test@example.com"
+        )  # メールアドレス全体がアカウント名
+        assert result["issuer"] == "Google"
+        assert result["secret"] == "JBSWY3DPEHPK3PXP"
+
+    def test_parse_otpauth_output_email_account_without_issuer(self, docker_manager):
+        """TC-DM-016g: otpauth出力解析（メールアドレスアカウント名、issuerなし）"""
+        # メールアドレスをアカウント名として使用、issuerパラメータなし
+        output = "otpauth://totp/test@example.com?algorithm=SHA1&digits=6&period=30&secret=JBSWY3DPEHPK3PXP"
+
+        result = docker_manager.parse_otpauth_output(output)
+
+        assert result is not None
+        assert (
+            result["device_name"] == "test@example.com"
+        )  # issuerなしの場合、account_nameをフォールバック
+        assert result["account_name"] == "test@example.com"
+        assert result["issuer"] is None
+        assert result["secret"] == "JBSWY3DPEHPK3PXP"
+
+    def test_parse_otpauth_output_issuer_mismatch(self, docker_manager):
+        """TC-DM-016h: otpauth出力解析（issuerパラメータとlabelのissuerが不一致）"""
+        # label内のissuerとissuerパラメータが異なる場合
+        output = "otpauth://totp/WrongIssuer:account@example.com?algorithm=SHA1&digits=6&issuer=CorrectIssuer&period=30&secret=JBSWY3DPEHPK3PXP"
+
+        result = docker_manager.parse_otpauth_output(output)
+
+        assert result is not None
+        assert result["device_name"] == "CorrectIssuer"
+        # issuerが不一致の場合、label全体をaccount_nameとして扱う
+        assert result["account_name"] == "WrongIssuer:account@example.com"
+        assert result["issuer"] == "CorrectIssuer"
         assert result["secret"] == "JBSWY3DPEHPK3PXP"
 
     def test_parse_otpauth_output_special_characters(self, docker_manager):
@@ -274,7 +305,7 @@ class TestDockerManager:
         assert result is None
 
     def test_process_qr_url_success(self, docker_manager):
-        """TC-DM-017: QRコードURL処理（成功）"""
+        """TC-DM-017: QRコードURL処理（成功、メールアドレスアカウント名）"""
         qr_url = "otpauth-migration://offline?data=test_data"
 
         with patch.object(docker_manager, "_validate_qr_url", return_value=True):
@@ -292,8 +323,12 @@ class TestDockerManager:
                     result = docker_manager.process_qr_url(qr_url)
 
                     assert result is not None
-                    assert result["device_name"] == "test"
-                    assert result["account_name"] == "example.com"
+                    # issuerをdevice_nameとして使用
+                    assert result["device_name"] == "TestService"
+                    # メールアドレス全体がaccount_name
+                    assert result["account_name"] == "test@example.com"
+                    assert result["issuer"] == "TestService"
+                    assert result["secret"] == "JBSWY3DPEHPK3PXP"
 
     def test_process_qr_url_invalid_format(self, docker_manager):
         """TC-DM-018: QRコードURL処理（無効な形式）"""

@@ -237,15 +237,20 @@ class DockerManager:
 
     def parse_otpauth_output(self, output: str) -> Optional[Dict[str, Optional[str]]]:
         """
-        otpauthの出力を解析（urllib.parseを使用）
+        otpauthの出力を解析（urllib.parseを使用、OTP URI標準仕様準拠）
 
         Args:
             output: otpauthの出力文字列
-            例: otpauth://totp/[アカウント名]?algorithm=SHA1&digits=6&issuer=[IssueName]&period=30&secret=[SecurityCode]
-            または: otpauth://totp/[Device名]@[アカウント名]?algorithm=SHA1&digits=6&issuer=[IssueName]&period=30&secret=[SecurityCode]
+            標準形式:
+              - otpauth://totp/issuer:account?issuer=issuer&secret=...
+              - otpauth://totp/account?issuer=issuer&secret=...
 
         Returns:
             解析結果の辞書
+
+        Note:
+            labelは "issuer:account" または "account" の形式。
+            メールアドレス（例: test@example.com）もアカウント名として正しく扱う。
         """
         try:
             # URLをパース
@@ -260,18 +265,30 @@ class DockerManager:
                 print(f"無効なotpauthタイプ: {parsed_url.netloc}")
                 return None
 
-            # パスから device_name と account_name を取得
-            path = unquote(parsed_url.path.lstrip("/"))
-
-            if "@" in path:
-                # パターン2: Device名@アカウント名
-                device_name, account_name = path.split("@", 1)
-            else:
-                # パターン1: アカウント名のみ（device_nameとして同じ値を使用）
-                device_name = account_name = path
-
             # クエリパラメータをパース
             params = parse_qs(parsed_url.query)
+            issuer_param = params.get("issuer", [None])[0]
+
+            # パスからlabelを取得（URLデコード）
+            label = unquote(parsed_url.path.lstrip("/"))
+
+            # labelから issuer と account を分離
+            # 標準: "issuer:account" または "account"
+            if ":" in label and issuer_param:
+                # issuer:account 形式の場合、issuerを削除してaccountを取得
+                # issuerパラメータと一致する場合のみ
+                parts = label.split(":", 1)
+                if parts[0] == issuer_param:
+                    account_name = parts[1]
+                else:
+                    # issuerパラメータと不一致の場合、label全体をaccountとして扱う
+                    account_name = label
+            else:
+                # シンプル形式（issuerなし）または ":" が含まれない場合
+                account_name = label
+
+            # device_name は issuer を使用、なければ account_name をフォールバック
+            device_name = issuer_param if issuer_param else account_name
 
             # 各パラメータを取得（リストの最初の要素を取得）
             result = {
@@ -279,7 +296,7 @@ class DockerManager:
                 "account_name": account_name,
                 "algorithm": params.get("algorithm", [None])[0],
                 "digits": params.get("digits", [None])[0],
-                "issuer": params.get("issuer", [None])[0],
+                "issuer": issuer_param,
                 "period": params.get("period", [None])[0],
                 "secret": params.get("secret", [None])[0],
             }
