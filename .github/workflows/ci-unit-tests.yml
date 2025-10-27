@@ -18,23 +18,17 @@ jobs:
     - name: リポジトリのチェックアウト
       uses: actions/checkout@v4
     
-    - name: Dockerイメージのビルド
+    - name: Dockerイメージのビルド（テスト用）
       run: |
         docker build -f Dockerfile.test -t onetimepassword-test:latest .
     
-    - name: 単体テストの実行（Docker内）
+    - name: 単体テストの実行（Docker Compose経由）
       run: |
-        docker run --rm \
-          -v ${{ github.workspace }}:/app \
-          onetimepassword-test:latest \
-          poetry run pytest tests/unit/ -v --cov=src --cov-report=term-missing --cov-report=xml --cov-report=html
+        docker compose run --rm test-unit
     
-    - name: 統合テストの実行（Docker内）
+    - name: 統合テストの実行（Docker Compose経由）
       run: |
-        docker run --rm \
-          -v ${{ github.workspace }}:/app \
-          onetimepassword-test:latest \
-          poetry run pytest tests/integration/ -v
+        docker compose run --rm test-integration
     
     - name: カバレッジレポートのアップロード
       uses: actions/upload-artifact@v4
