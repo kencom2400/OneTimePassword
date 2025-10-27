@@ -5,10 +5,8 @@
 import pytest
 import os
 import tempfile
-from unittest.mock import patch, Mock, MagicMock
+from unittest.mock import patch
 from src.security_manager import SecurityManager
-from src.otp_generator import OTPGenerator
-from src.camera_qr_reader import CameraQRReader
 from src.docker_manager import DockerManager
 from src.main import OneTimePasswordApp
 

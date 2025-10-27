@@ -7,7 +7,7 @@ import cv2
 import numpy as np
 import time
 import threading
-from typing import Optional, Tuple, Callable
+from typing import Optional, Callable
 import os
 
 

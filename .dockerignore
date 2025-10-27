@@ -42,22 +42,14 @@ logs/
 .DS_Store
 Thumbs.db
 
-# Documentation
-*.md
+# Documentation (keep README for reference)
 docs/
 
 # CI/CD
 .github/
 
-# Poetry
-poetry.lock
-
-# Test files (not needed in Docker image)
-tests/
-test_*.py
-*_test.py
-conftest.py
-TEST_DESIGN.md
+# Note: poetry.lock and tests/ are needed for CI Docker images
+# They are only excluded for production builds if needed
 
 # Build artifacts
 build/

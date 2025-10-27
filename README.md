@@ -30,6 +30,29 @@ Google Authenticatorと同様の機能を持つワンタイムパスワード（
 
 ## 📖 使用方法
 
+### 🐳 Docker環境での実行（推奨）
+
+Dockerを使用することで、環境構築不要ですぐに使用できます。
+
+```bash
+# テストの実行
+docker-compose run --rm test
+
+# ユニットテストのみ実行
+docker-compose run --rm test-unit
+
+# 統合テストのみ実行
+docker-compose run --rm test-integration
+
+# Lintチェック（Black, Flake8, MyPy）
+docker-compose run --rm black
+docker-compose run --rm flake8
+docker-compose run --rm mypy
+
+# アプリケーションの実行
+docker-compose run --rm app poetry run python src/main.py [コマンド]
+```
+
 ### Poetry環境での実行
 
 ```bash

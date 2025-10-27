@@ -30,6 +30,29 @@ A one-time password (OTP) generation application with functionality similar to G
 
 ## 📖 Usage
 
+### 🐳 Running with Docker (Recommended)
+
+Using Docker eliminates the need for environment setup and provides immediate usability.
+
+```bash
+# Run tests
+docker-compose run --rm test
+
+# Run unit tests only
+docker-compose run --rm test-unit
+
+# Run integration tests only
+docker-compose run --rm test-integration
+
+# Lint checks (Black, Flake8, MyPy)
+docker-compose run --rm black
+docker-compose run --rm flake8
+docker-compose run --rm mypy
+
+# Run the application
+docker-compose run --rm app poetry run python src/main.py [command]
+```
+
 ### Running with Poetry Environment
 
 ```bash

@@ -6,11 +6,8 @@ otpauthコンテナの起動・停止・実行機能を提供
 import subprocess
 import os
 import tempfile
-import json
-import re
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, Optional
 from urllib.parse import urlparse, parse_qs, unquote
-import time
 
 
 class DockerManager:
@@ -174,7 +171,7 @@ class DockerManager:
             print(f"イメージビルドエラー: {str(e)}")
             return False
 
-    def run_container(self, qr_url: str) -> Tuple[bool, str]:
+    def run_container(self, qr_url: str) -> tuple[bool, str]:
         """
         コンテナを実行してQRコードURLを解析
 

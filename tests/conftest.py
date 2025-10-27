@@ -7,8 +7,7 @@ import tempfile
 import os
 import json
 import uuid
-from typing import Dict, Any, List
-from unittest.mock import Mock, patch
+from unittest.mock import Mock, patch  # noqa: F401
 
 
 @pytest.fixture

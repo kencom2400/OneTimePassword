@@ -5,10 +5,9 @@ pyotpライブラリを使用してOTPを生成・管理
 
 import pyotp
 import time
-from datetime import datetime, timedelta
-from typing import Dict, List, Optional
+from datetime import datetime
+from typing import Dict, List
 import threading
-import sys
 
 
 class OTPGenerator:
@@ -226,7 +225,8 @@ class OTPGenerator:
             セキュリティコードの情報
         """
         try:
-            totp = pyotp.TOTP(secret)
+            # TOTPオブジェクトを作成して検証
+            pyotp.TOTP(secret)
             return {
                 "valid": True,
                 "algorithm": "SHA1",
