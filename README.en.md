@@ -30,7 +30,27 @@ A one-time password (OTP) generation application with functionality similar to G
 
 ## 📖 Usage
 
-### 🐳 Running with Docker (Recommended)
+### 🚀 Running with Wrapper Shell (Recommended - Easiest)
+
+**No need to worry about Poetry environment!** The wrapper shell automatically sets up the Poetry environment.
+
+```bash
+# First run automatically executes Poetry install
+./otp [command]
+
+# Subsequent runs execute immediately
+./otp show --all
+./otp list
+./otp add --camera
+```
+
+**Features:**
+- ✅ Ready to use right after cloning (no need to remember Poetry install)
+- ✅ No need for `poetry run` commands
+- ✅ Simple and intuitive execution method
+- ✅ Automatically installs dependencies on first run
+
+### 🐳 Running with Docker
 
 Using Docker eliminates the need for environment setup and provides immediate usability.
 
@@ -53,7 +73,7 @@ docker-compose run --rm mypy
 docker-compose run --rm app poetry run python src/main.py [command]
 ```
 
-### Running with Poetry Environment
+### Running with Poetry Environment (Traditional Method)
 
 ```bash
 # Run within Poetry virtual environment
@@ -69,55 +89,81 @@ python src/main.py [command]
 #### Adding Accounts
 
 ```bash
-# Read QR code with camera
-poetry run python src/main.py add --camera
+# Run with wrapper shell (recommended)
+./otp add --camera                    # Read QR code with camera
+./otp add --image qr_code.png         # Read QR code from image file
 
-# Read QR code from image file
+# Or traditional method
+poetry run python src/main.py add --camera
 poetry run python src/main.py add --image qr_code.png
 ```
 
 #### Displaying OTP
 
 ```bash
-# Display OTP for all accounts (real-time updates)
-poetry run python src/main.py show --all
+# Run with wrapper shell (recommended)
+./otp show --all                      # Display OTP for all accounts (real-time updates)
+./otp show <account_id>               # Display OTP for specific account
 
-# Display OTP for specific account
+# Or traditional method
+poetry run python src/main.py show --all
 poetry run python src/main.py show <account_id>
 ```
 
 #### Account Management
 
 ```bash
-# Display account list
+# Run with wrapper shell (recommended)
+./otp list                            # Display account list
+./otp delete <account_id>             # Delete account
+./otp update <account_id> --name "New Name"  # Update account information
+./otp search "keyword"                # Search accounts
+
+# Or traditional method
 poetry run python src/main.py list
-
-# Delete account
 poetry run python src/main.py delete <account_id>
-
-# Update account information
 poetry run python src/main.py update <account_id> --name "New Name"
-
-# Search accounts
 poetry run python src/main.py search "keyword"
 ```
 
 #### System Management
 
 ```bash
-# Display application status
+# Run with wrapper shell (recommended)
+./otp status                          # Display application status
+./otp setup                           # Setup Docker environment
+./otp cleanup                         # Remove Docker image
+
+# Or traditional method
 poetry run python src/main.py status
-
-# Setup Docker environment
 poetry run python src/main.py setup
-
-# Remove Docker image
 poetry run python src/main.py cleanup
 ```
 
 ## 🛠️ Setup
 
-### 1. Poetry Environment Setup
+### 🚀 Quick Start (Using Wrapper Shell)
+
+**The simplest method!** Get started with just these steps:
+
+```bash
+# 1. Clone the repository
+git clone https://github.com/your-username/OneTimePassword.git
+cd OneTimePassword
+
+# 2. Install Poetry (if not already installed)
+curl -sSL https://install.python-poetry.org | python3 -
+export PATH="$HOME/.local/bin:$PATH"
+
+# 3. Run immediately! (automatically installs dependencies on first run)
+./otp --help
+
+# Done! That's all 🎉
+```
+
+### 1. Poetry Environment Setup (Traditional Method)
+
+If you prefer manual setup instead of using the wrapper shell:
 
 ```bash
 # If Poetry is not installed
@@ -157,10 +203,12 @@ docker images | grep otpauth
 ### 4. Environment Testing
 
 ```bash
-# Check application functionality
-poetry run python src/main.py --help
+# Run with wrapper shell (recommended)
+./otp --help                          # Check application functionality
+./otp status                          # Check status
 
-# Check status
+# Or traditional method
+poetry run python src/main.py --help
 poetry run python src/main.py status
 ```
 
@@ -336,6 +384,8 @@ If you encounter issues, please follow these steps:
 
 ```
 OneTimePassword/
+├── otp                           # 🚀 Execution wrapper shell (recommended)
+├── run_tests.sh                  # Test execution wrapper shell
 ├── src/                          # Source code
 │   ├── __init__.py              # Package initialization
 │   ├── main.py                  # Main application (CLI)
@@ -356,8 +406,7 @@ OneTimePassword/
 │   │   └── test_main.py
 │   ├── integration/             # Integration tests (10 tests)
 │   │   └── test_integration.py
-│   ├── run_tests.py             # Python test execution script
-│   └── run_tests.sh             # Bash wrapper script
+│   └── run_tests.py             # Python test execution script
 ├── data/                         # Data directory
 │   └── accounts.json            # Account data (encrypted)
 ├── htmlcov/                      # Coverage HTML reports (auto-generated)

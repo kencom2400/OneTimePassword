@@ -30,7 +30,27 @@ Google Authenticatorと同様の機能を持つワンタイムパスワード（
 
 ## 📖 使用方法
 
-### 🐳 Docker環境での実行（推奨）
+### 🚀 ラッパーシェルでの実行（推奨・最も簡単）
+
+**Poetry環境を意識せずに実行できます！** ラッパーシェルが自動的にPoetry環境をセットアップします。
+
+```bash
+# 初回実行時は自動的にPoetry installを実行します
+./otp [コマンド]
+
+# 2回目以降はすぐに実行されます
+./otp show --all
+./otp list
+./otp add --camera
+```
+
+**特徴:**
+- ✅ Clone後すぐに使える（Poetry installを忘れる心配なし）
+- ✅ `poetry run`コマンドが不要
+- ✅ シンプルで直感的な実行方法
+- ✅ 初回実行時に自動で依存関係をインストール
+
+### 🐳 Docker環境での実行
 
 Dockerを使用することで、環境構築不要ですぐに使用できます。
 
@@ -53,7 +73,7 @@ docker-compose run --rm mypy
 docker-compose run --rm app poetry run python src/main.py [コマンド]
 ```
 
-### Poetry環境での実行
+### Poetry環境での実行（従来の方法）
 
 ```bash
 # Poetry仮想環境内で実行
@@ -69,55 +89,81 @@ python src/main.py [コマンド]
 #### アカウントの追加
 
 ```bash
-# カメラでQRコード読み取り
-poetry run python src/main.py add --camera
+# ラッパーシェルで実行（推奨）
+./otp add --camera                    # カメラでQRコード読み取り
+./otp add --image qr_code.png         # 画像ファイルからQRコード読み取り
 
-# 画像ファイルからQRコード読み取り
+# または従来の方法
+poetry run python src/main.py add --camera
 poetry run python src/main.py add --image qr_code.png
 ```
 
 #### OTPの表示
 
 ```bash
-# 全アカウントのOTP表示（リアルタイム更新）
-poetry run python src/main.py show --all
+# ラッパーシェルで実行（推奨）
+./otp show --all                      # 全アカウントのOTP表示（リアルタイム更新）
+./otp show <account_id>               # 特定アカウントのOTP表示
 
-# 特定アカウントのOTP表示
+# または従来の方法
+poetry run python src/main.py show --all
 poetry run python src/main.py show <account_id>
 ```
 
 #### アカウント管理
 
 ```bash
-# アカウント一覧表示
+# ラッパーシェルで実行（推奨）
+./otp list                            # アカウント一覧表示
+./otp delete <account_id>             # アカウント削除
+./otp update <account_id> --name "新しい名前"  # アカウント情報更新
+./otp search "キーワード"             # アカウント検索
+
+# または従来の方法
 poetry run python src/main.py list
-
-# アカウント削除
 poetry run python src/main.py delete <account_id>
-
-# アカウント情報更新
 poetry run python src/main.py update <account_id> --name "新しい名前"
-
-# アカウント検索
 poetry run python src/main.py search "キーワード"
 ```
 
 #### システム管理
 
 ```bash
-# アプリケーション状態表示
+# ラッパーシェルで実行（推奨）
+./otp status                          # アプリケーション状態表示
+./otp setup                           # Docker環境のセットアップ
+./otp cleanup                         # Dockerイメージの削除
+
+# または従来の方法
 poetry run python src/main.py status
-
-# Docker環境のセットアップ
 poetry run python src/main.py setup
-
-# Dockerイメージの削除
 poetry run python src/main.py cleanup
 ```
 
 ## 🛠️ セットアップ
 
-### 1. Poetry環境のセットアップ
+### 🚀 クイックスタート（ラッパーシェル使用の場合）
+
+**最もシンプルな方法！** 以下の手順だけで使い始められます：
+
+```bash
+# 1. リポジトリをクローン
+git clone https://github.com/your-username/OneTimePassword.git
+cd OneTimePassword
+
+# 2. Poetryをインストール（未インストールの場合のみ）
+curl -sSL https://install.python-poetry.org | python3 -
+export PATH="$HOME/.local/bin:$PATH"
+
+# 3. すぐに実行！（初回実行時に自動で依存関係をインストール）
+./otp --help
+
+# 完了！これだけです 🎉
+```
+
+### 1. Poetry環境のセットアップ（従来の方法）
+
+ラッパーシェルを使わず、手動でセットアップする場合：
 
 ```bash
 # Poetryがインストールされていない場合
@@ -157,10 +203,12 @@ docker images | grep otpauth
 ### 4. 環境テスト
 
 ```bash
-# アプリケーションの動作確認
-poetry run python src/main.py --help
+# ラッパーシェルで実行（推奨）
+./otp --help                          # アプリケーションの動作確認
+./otp status                          # ステータス確認
 
-# ステータス確認
+# または従来の方法
+poetry run python src/main.py --help
 poetry run python src/main.py status
 ```
 
@@ -336,6 +384,8 @@ poetry lock
 
 ```
 OneTimePassword/
+├── otp                           # 🚀 実行ラッパーシェル（推奨）
+├── run_tests.sh                  # テスト実行ラッパーシェル
 ├── src/                          # ソースコード
 │   ├── __init__.py              # パッケージ初期化
 │   ├── main.py                  # メインアプリケーション（CLI）
@@ -356,8 +406,7 @@ OneTimePassword/
 │   │   └── test_main.py
 │   ├── integration/             # 統合テスト（10個）
 │   │   └── test_integration.py
-│   ├── run_tests.py             # Pythonテスト実行スクリプト
-│   └── run_tests.sh             # Bashラッパースクリプト
+│   └── run_tests.py             # Pythonテスト実行スクリプト
 ├── data/                         # データディレクトリ
 │   └── accounts.json            # アカウントデータ（暗号化）
 ├── htmlcov/                      # カバレッジHTMLレポート（自動生成）
@@ -367,6 +416,7 @@ OneTimePassword/
 ├── .gitignore                   # Git除外設定
 ├── LICENSE                      # ライセンスファイル
 ├── README.md                    # このファイル
+├── README.en.md                 # 英語版README
 ├── REQUIREMENTS_OVERVIEW.md     # プロジェクト要件概要
 └── requirements_specification.md # 要件定義書
 ```

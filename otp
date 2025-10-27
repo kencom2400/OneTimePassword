@@ -1,0 +1,167 @@
+#!/usr/bin/env bash
+#
+# OTPアプリケーション実行ラッパーシェル
+# Poetry環境を自動的にセットアップし、アプリケーションを実行します
+#
+
+set -e  # エラー時に即座に終了
+
+# スクリプトのディレクトリを取得
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+cd "$SCRIPT_DIR"
+
+# カラー出力の定義
+if [ -t 1 ]; then
+    RED='\033[0;31m'
+    GREEN='\033[0;32m'
+    YELLOW='\033[1;33m'
+    BLUE='\033[0;34m'
+    NC='\033[0m' # No Color
+else
+    RED=''
+    GREEN=''
+    YELLOW=''
+    BLUE=''
+    NC=''
+fi
+
+# エラーメッセージ出力
+error() {
+    echo -e "${RED}エラー: $1${NC}" >&2
+    exit 1
+}
+
+# 情報メッセージ出力
+info() {
+    echo -e "${BLUE}$1${NC}"
+}
+
+# 成功メッセージ出力
+success() {
+    echo -e "${GREEN}$1${NC}"
+}
+
+# 警告メッセージ出力
+warning() {
+    echo -e "${YELLOW}$1${NC}"
+}
+
+# Poetry がインストールされているか確認
+check_poetry() {
+    if ! command -v poetry &> /dev/null; then
+        error "Poetryがインストールされていません。\n\nインストール方法:\n  curl -sSL https://install.python-poetry.org | python3 -\n  export PATH=\"\$HOME/.local/bin:\$PATH\""
+    fi
+}
+
+# Poetry環境が初期化されているか確認
+check_poetry_env() {
+    if [ ! -f "poetry.lock" ]; then
+        return 1
+    fi
+    
+    # 仮想環境が存在するか確認
+    if ! poetry env info &> /dev/null; then
+        return 1
+    fi
+    
+    # 依存関係がインストールされているか確認（簡易チェック）
+    if ! poetry run python -c "import pyotp" &> /dev/null; then
+        return 1
+    fi
+    
+    return 0
+}
+
+# Poetry環境のセットアップ
+setup_poetry_env() {
+    info "Poetry環境をセットアップしています..."
+    
+    # pyproject.tomlの存在確認
+    if [ ! -f "pyproject.toml" ]; then
+        error "pyproject.tomlが見つかりません。"
+    fi
+    
+    # Poetry installの実行
+    info "依存関係をインストールしています（初回は時間がかかる場合があります）..."
+    if ! poetry install --no-interaction; then
+        error "Poetry installに失敗しました。"
+    fi
+    
+    success "✓ Poetry環境のセットアップが完了しました。"
+}
+
+# メイン処理
+main() {
+    # Poetryのインストール確認
+    check_poetry
+    
+    # Poetry環境の確認とセットアップ
+    if ! check_poetry_env; then
+        warning "Poetry環境が初期化されていません。"
+        setup_poetry_env
+        echo ""
+    fi
+    
+    # アプリケーションの実行
+    # 引数をそのまま渡す
+    exec poetry run python src/main.py "$@"
+}
+
+# ヘルプメッセージ
+show_usage() {
+    cat << EOF
+OTPアプリケーション実行ラッパー
+
+使用方法:
+  $0 [コマンド] [オプション]
+
+このラッパーは以下の機能を提供します:
+  - Poetry環境の自動セットアップ（初回実行時）
+  - 依存関係の自動インストール
+  - アプリケーションのシンプルな実行
+
+利用可能なコマンド:
+  add           アカウントを追加
+  show          OTPを表示
+  list          アカウント一覧を表示
+  delete        アカウントを削除
+  update        アカウント情報を更新
+  search        アカウントを検索
+  setup         Docker環境をセットアップ
+  cleanup       Dockerイメージを削除
+  status        アプリケーションの状態を表示
+
+使用例:
+  $0 add --camera                    # カメラでQRコード読み取り
+  $0 add --image qr_code.png         # 画像ファイルからQRコード読み取り
+  $0 show --all                      # 全アカウントのOTP表示
+  $0 show <account_id>               # 特定アカウントのOTP表示
+  $0 list                            # アカウント一覧
+  $0 delete <account_id>             # アカウント削除
+  $0 update <account_id> --name "新名称"  # アカウント更新
+  $0 search "キーワード"             # アカウント検索
+  $0 setup                           # 環境セットアップ
+  $0 cleanup                         # Dockerイメージ削除
+  $0 status                          # 状態表示
+
+詳細なヘルプ:
+  $0 --help                          # アプリケーションのヘルプを表示
+
+EOF
+}
+
+# 引数チェック
+if [ $# -eq 0 ]; then
+    show_usage
+    exit 0
+fi
+
+# --usageオプションのチェック（このラッパーのヘルプ）
+if [ "$1" = "--usage" ]; then
+    show_usage
+    exit 0
+fi
+
+# メイン処理の実行
+main "$@"
+
