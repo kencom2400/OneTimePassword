@@ -237,15 +237,6 @@ source ~/.zshrc
 
 If neither environment variables nor password file are configured, you will be prompted to enter the password when the application starts.
 
-#### Optional: Custom Salt Configuration
-
-To customize the default salt:
-
-```bash
-# Add to ~/.zshrc or ~/.bashrc
-export OTP_SALT="your_custom_salt_value"
-```
-
 **⚠️ Security Warning**:
 - Use a strong, difficult-to-guess master password
 - When using a password file, ensure proper file permissions (600) are set
