@@ -1,0 +1,58 @@
+# Git files
+.git/
+.gitignore
+.gitattributes
+
+# Python cache and compiled files
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Virtual environments
+venv/
+env/
+ENV/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Testing
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+coverage.xml
+*.cover
+.hypothesis/
+
+# Data files (sensitive information)
+data/
+*.json
+
+# Logs
+*.log
+logs/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Documentation (keep README for reference)
+docs/
+
+# CI/CD
+.github/
+
+# Note: poetry.lock and tests/ are needed for CI Docker images
+# They are only excluded for production builds if needed
+
+# Build artifacts
+build/
+dist/
+*.egg-info/
+

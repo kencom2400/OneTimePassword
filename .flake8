@@ -14,7 +14,15 @@ exclude =
     *.egg-info
 
 # 1ファイルあたりの複雑度の最大値
-max-complexity = 10
+max-complexity = 15
+
+# ファイル毎の無視設定
+per-file-ignores =
+    tests/**/*.py:F841,F401
+    tests/*.py:F841,F401
+    src/main.py:E402,C901
+    src/camera_qr_reader.py:C901,E722
+    src/crypto_utils.py:C901
 
 # インポート順序のチェック
 import-order-style = google

@@ -1,0 +1,47 @@
+name: CI - ユニット・統合テスト
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+  pull_request:
+    branches:
+      - main
+      - develop
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: リポジトリのチェックアウト
+      uses: actions/checkout@v4
+    
+    - name: Dockerイメージのビルド（テスト用）
+      run: |
+        docker build -f Dockerfile.test -t onetimepassword-test:latest .
+    
+    - name: 単体テストの実行（Docker Compose経由）
+      run: |
+        docker compose run --rm test-unit
+    
+    - name: 統合テストの実行（Docker Compose経由）
+      run: |
+        docker compose run --rm test-integration
+    
+    - name: カバレッジレポートのアップロード
+      uses: actions/upload-artifact@v4
+      with:
+        name: coverage-report
+        path: |
+          htmlcov/
+          coverage.xml
+    
+    - name: カバレッジバッジの更新 (codecov)
+      uses: codecov/codecov-action@v4
+      with:
+        files: ./coverage.xml
+        fail_ci_if_error: false
+        verbose: true
+

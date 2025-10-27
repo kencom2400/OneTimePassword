@@ -1,13 +1,13 @@
 """
 テスト共通フィクスチャ
 """
+
 import pytest
 import tempfile
 import os
 import json
 import uuid
-from typing import Dict, Any, List
-from unittest.mock import Mock, patch
+from unittest.mock import Mock, patch  # noqa: F401
 
 
 @pytest.fixture
@@ -24,7 +24,7 @@ def sample_account_data():
         "device_name": "TestDevice",
         "account_name": "test@example.com",
         "issuer": "TestService",
-        "secret": "JBSWY3DPEHPK3PXP"
+        "secret": "JBSWY3DPEHPK3PXP",
     }
 
 
@@ -38,7 +38,7 @@ def sample_accounts():
             "account_name": "test1@example.com",
             "issuer": "TestService1",
             "secret": "JBSWY3DPEHPK3PXP",
-            "created_at": "2025-01-26T10:00:00Z"
+            "created_at": "2025-01-26T10:00:00Z",
         },
         {
             "id": str(uuid.uuid4()),
@@ -46,8 +46,8 @@ def sample_accounts():
             "account_name": "test2@example.com",
             "issuer": "TestService2",
             "secret": "GEZDGNBVGY3TQOJQ",
-            "created_at": "2025-01-26T11:00:00Z"
-        }
+            "created_at": "2025-01-26T11:00:00Z",
+        },
     ]
 
 
@@ -70,7 +70,7 @@ def sample_encrypted_data():
         "data": "encrypted_data_here",
         "salt": "salt_here",
         "nonce": "nonce_here",
-        "tag": "tag_here"
+        "tag": "tag_here",
     }
 
 
@@ -96,9 +96,11 @@ def mock_docker_client():
 @pytest.fixture
 def temp_image_file():
     """一時的な画像ファイル"""
-    with tempfile.NamedTemporaryFile(suffix='.png', delete=False) as f:
+    with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as f:
         # ダミーのPNGデータを書き込み
-        f.write(b'\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00\x00\x01\x08\x06\x00\x00\x00\x1f\x15\xc4\x89\x00\x00\x00\nIDATx\x9cc\x00\x01\x00\x00\x05\x00\x01\r\n-\xdb\x00\x00\x00\x00IEND\xaeB`\x82')
+        f.write(
+            b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00\x00\x01\x08\x06\x00\x00\x00\x1f\x15\xc4\x89\x00\x00\x00\nIDATx\x9cc\x00\x01\x00\x00\x05\x00\x01\r\n-\xdb\x00\x00\x00\x00IEND\xaeB`\x82"
+        )
         f.flush()
         yield f.name
     os.unlink(f.name)
@@ -107,6 +109,6 @@ def temp_image_file():
 @pytest.fixture
 def mock_time():
     """モック時刻"""
-    with patch('time.time') as mock:
+    with patch("time.time") as mock:
         mock.return_value = 1640995200.0  # 2022-01-01 00:00:00 UTC
         yield mock

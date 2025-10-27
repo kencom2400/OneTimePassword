@@ -1,0 +1,38 @@
+# テスト専用のDockerfile
+FROM python:3.13-slim
+
+WORKDIR /app
+
+# システム依存関係のインストール
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+    libgl1 \
+    libglib2.0-0 \
+    gcc \
+    g++ \
+    && rm -rf /var/lib/apt/lists/*
+
+# Poetryのインストール
+RUN pip install --no-cache-dir poetry==1.8.3
+
+# Poetry設定
+RUN poetry config virtualenvs.create false
+
+# 依存関係ファイルをコピー
+COPY pyproject.toml poetry.lock ./
+
+# テスト依存のみインストール
+RUN poetry install --no-interaction --no-ansi --no-root --only main,test
+
+# アプリケーションコードをコピー
+COPY . .
+
+# .venvディレクトリを削除（ホストから来た場合）
+RUN rm -rf .venv
+
+# プロジェクト自体をインストール
+RUN poetry install --no-interaction --no-ansi --only-root
+
+# テスト実行
+CMD ["poetry", "run", "pytest", "tests/", "-v", "--cov=src", "--cov-report=term-missing", "--cov-report=xml", "--cov-report=html"]
+

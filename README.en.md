@@ -30,6 +30,29 @@ A one-time password (OTP) generation application with functionality similar to G
 
 ## 📖 Usage
 
+### 🐳 Running with Docker (Recommended)
+
+Using Docker eliminates the need for environment setup and provides immediate usability.
+
+```bash
+# Run tests
+docker-compose run --rm test
+
+# Run unit tests only
+docker-compose run --rm test-unit
+
+# Run integration tests only
+docker-compose run --rm test-integration
+
+# Lint checks (Black, Flake8, MyPy)
+docker-compose run --rm black
+docker-compose run --rm flake8
+docker-compose run --rm mypy
+
+# Run the application
+docker-compose run --rm app poetry run python src/main.py [command]
+```
+
 ### Running with Poetry Environment
 
 ```bash
@@ -152,10 +175,73 @@ poetry run python src/main.py status
 ## 🔒 Security
 
 - **Encryption**: Security codes are encrypted with PBKDF2 before storage
+- **Random Salts**: Generate a unique 16-byte random salt for each encryption (protects against rainbow table attacks)
 - **Local Storage**: Confidential data is not committed to GitHub
 - **Memory Clearing**: Sensitive data is cleared immediately after use
 - **Permission Management**: Appropriate file permission settings
 - **Camera Access**: Access camera with minimal permissions
+- **Environment Variables**: Master password is securely managed through environment variables
+
+### 🔐 Encryption Mechanism
+
+This application follows industry-standard security practices:
+
+1. **Unique Salt Per Encryption**: Even encrypting the same data produces different results each time
+2. **PBKDF2 Key Derivation**: Derives encryption keys from master password with 100,000 iterations
+3. **Fernet Encryption**: Authenticated encryption using AES-128-CBC and HMAC-SHA256
+4. **Salt Storage**: 16-byte random salt is stored alongside encrypted data
+
+### 🔐 Master Password Configuration (Important)
+
+The application uses a master password to encrypt security codes.
+Configure the master password using one of the following methods:
+
+#### Method 1: Environment Variable (Recommended)
+
+```bash
+# Add to ~/.zshrc or ~/.bashrc
+export OTP_MASTER_PASSWORD="your_strong_password_here"
+
+# Apply settings
+source ~/.zshrc
+```
+
+#### Method 2: Password File (More Secure - Recommended)
+
+**Using default file `~/.otp_password` (no environment variable needed):**
+
+```bash
+# Create password file with restricted permissions
+echo "your_strong_password_here" > ~/.otp_password
+chmod 600 ~/.otp_password
+
+# That's it! No environment variable needed
+poetry run python src/main.py show --all
+```
+
+**Using custom password file location:**
+
+```bash
+# Create password file at custom location
+echo "your_strong_password_here" > /path/to/custom_password
+chmod 600 /path/to/custom_password
+
+# Add to ~/.zshrc or ~/.bashrc
+export OTP_PASSWORD_FILE="/path/to/custom_password"
+
+# Apply settings
+source ~/.zshrc
+```
+
+#### Method 3: Interactive Input
+
+If neither environment variables nor password file are configured, you will be prompted to enter the password when the application starts.
+
+**⚠️ Security Warning**:
+- Use a strong, difficult-to-guess master password
+- When using a password file, ensure proper file permissions (600) are set
+- Never commit environment variables or password files to version control systems
+- Changing the password may make existing data unrecoverable
 
 ## 🐛 Troubleshooting
 
@@ -282,7 +368,7 @@ OneTimePassword/
 ├── LICENSE                      # License file
 ├── README.md                    # This file (Japanese)
 ├── README.en.md                 # This file (English)
-├── Requirement.txt              # Project requirements
+├── REQUIREMENTS_OVERVIEW.md     # High-level project requirements
 └── requirements_specification.md # Requirements specification
 ```
 

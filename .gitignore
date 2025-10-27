@@ -35,6 +35,10 @@ ENV/
 data/
 *.json
 
+# Password files (sensitive)
+.otp_password
+*otp_password
+
 # Logs
 *.log
 logs/
@@ -43,5 +47,8 @@ logs/
 .DS_Store
 Thumbs.db
 
-# Docker
-.dockerignore
+# Coverage reports
+coverage.xml
+htmlcov/
+.coverage
+.coverage.*

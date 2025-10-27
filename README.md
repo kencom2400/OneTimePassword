@@ -30,6 +30,29 @@ Google Authenticatorと同様の機能を持つワンタイムパスワード（
 
 ## 📖 使用方法
 
+### 🐳 Docker環境での実行（推奨）
+
+Dockerを使用することで、環境構築不要ですぐに使用できます。
+
+```bash
+# テストの実行
+docker-compose run --rm test
+
+# ユニットテストのみ実行
+docker-compose run --rm test-unit
+
+# 統合テストのみ実行
+docker-compose run --rm test-integration
+
+# Lintチェック（Black, Flake8, MyPy）
+docker-compose run --rm black
+docker-compose run --rm flake8
+docker-compose run --rm mypy
+
+# アプリケーションの実行
+docker-compose run --rm app poetry run python src/main.py [コマンド]
+```
+
 ### Poetry環境での実行
 
 ```bash
@@ -152,10 +175,73 @@ poetry run python src/main.py status
 ## 🔒 セキュリティ
 
 - **暗号化**: セキュリティコードはPBKDF2で暗号化して保存
+- **ランダムソルト**: 各暗号化ごとに16バイトのランダムなソルトを生成（レインボーテーブル攻撃対策）
 - **ローカル保存**: 機密データはGitHubにコミットされません
 - **メモリクリア**: 使用後の機密データは即座にクリア
 - **権限管理**: 適切なファイル権限設定
 - **カメラアクセス**: 最小限の権限でカメラにアクセス
+- **環境変数**: マスターパスワードは環境変数で安全に管理
+
+### 🔐 暗号化の仕組み
+
+本アプリケーションは業界標準のセキュリティプラクティスを採用しています：
+
+1. **各暗号化ごとに一意のソルト**: 同じデータを暗号化しても、毎回異なる結果が生成されます
+2. **PBKDF2キー導出**: 100,000回の反復でマスターパスワードから暗号化キーを導出
+3. **Fernet暗号化**: AES-128-CBCとHMAC-SHA256による認証付き暗号化
+4. **ソルトの保存**: 16バイトのランダムソルトを暗号化データと一緒に保存
+
+### 🔐 マスターパスワードの設定（重要）
+
+アプリケーションはセキュリティコードを暗号化するためにマスターパスワードを使用します。
+以下のいずれかの方法でマスターパスワードを設定してください：
+
+#### 方法1: 環境変数で設定（推奨）
+
+```bash
+# ~/.zshrc または ~/.bashrc に追加
+export OTP_MASTER_PASSWORD="your_strong_password_here"
+
+# 設定を反映
+source ~/.zshrc
+```
+
+#### 方法2: パスワードファイルで設定（より安全・推奨）
+
+**デフォルトファイル `~/.otp_password` を使用（環境変数不要）:**
+
+```bash
+# パスワードファイルを作成（権限を制限）
+echo "your_strong_password_here" > ~/.otp_password
+chmod 600 ~/.otp_password
+
+# これだけで完了！環境変数の設定は不要です
+poetry run python src/main.py show --all
+```
+
+**カスタムパスワードファイルを使用する場合:**
+
+```bash
+# 任意の場所にパスワードファイルを作成
+echo "your_strong_password_here" > /path/to/custom_password
+chmod 600 /path/to/custom_password
+
+# ~/.zshrc または ~/.bashrc に追加
+export OTP_PASSWORD_FILE="/path/to/custom_password"
+
+# 設定を反映
+source ~/.zshrc
+```
+
+#### 方法3: インタラクティブ入力
+
+環境変数もパスワードファイルも設定していない場合、アプリケーション起動時にパスワードの入力を求められます。
+
+**⚠️ セキュリティ警告**:
+- マスターパスワードは推測しにくい強力なものを使用してください
+- パスワードファイルを使用する場合は、必ず適切なファイル権限（600）を設定してください
+- 環境変数やパスワードファイルをバージョン管理システムにコミットしないでください
+- パスワードを変更すると、既存のデータが復号化できなくなる可能性があります
 
 ## 🐛 トラブルシューティング
 
@@ -281,7 +367,7 @@ OneTimePassword/
 ├── .gitignore                   # Git除外設定
 ├── LICENSE                      # ライセンスファイル
 ├── README.md                    # このファイル
-├── Requirement.txt              # プロジェクト要件
+├── REQUIREMENTS_OVERVIEW.md     # プロジェクト要件概要
 └── requirements_specification.md # 要件定義書
 ```
 

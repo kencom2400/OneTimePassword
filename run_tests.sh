@@ -1,8 +1,8 @@
 #!/bin/bash
 
-# ワンタイムパスワードアプリケーション テスト実行ラッパー
+# ワンタイムパスワードアプリケーション テスト実行ラッパー (Docker版)
 # 作成日: 2025年1月26日
-# バージョン: 1.0
+# バージョン: 2.0 (Docker対応)
 
 set -e  # エラー時に終了
 
@@ -20,7 +20,8 @@ show_logo() {
     echo -e "${CYAN}"
     echo "╔══════════════════════════════════════════════════════════════╗"
     echo "║                                                              ║"
-    echo "║     🧪 ワンタイムパスワードアプリケーション テストラッパー      ║"
+    echo "║   🐳 ワンタイムパスワードアプリケーション テストラッパー       ║"
+    echo "║                     (Docker版)                               ║"
     echo "║                                                              ║"
     echo "╚══════════════════════════════════════════════════════════════╝"
     echo -e "${NC}"
@@ -29,78 +30,77 @@ show_logo() {
 # ヘルプ表示
 show_help() {
     echo -e "${YELLOW}使用方法:${NC}"
-    echo "  $0 [オプション] [コマンド]"
+    echo "  $0 [コマンド] [オプション]"
     echo ""
     echo -e "${YELLOW}コマンド:${NC}"
     echo "  all         全テストを実行（デフォルト）"
     echo "  unit        単体テストのみ実行"
     echo "  integration 統合テストのみ実行"
-    echo "  coverage    カバレッジ付きテスト実行"
-    echo "  quick       クイックテスト実行（失敗時停止）"
-    echo "  watch       ファイル変更監視モード"
-    echo "  clean       テストキャッシュとレポートをクリア"
-    echo "  report      テストレポートを表示"
+    echo "  lint        Lintチェック（Black, Flake8, MyPy）"
+    echo "  black       Black フォーマットチェック"
+    echo "  flake8      Flake8 スタイルチェック"
+    echo "  mypy        MyPy 型チェック"
+    echo "  format      Black フォーマット適用"
+    echo "  clean       Dockerイメージとキャッシュをクリア"
+    echo "  build       Dockerイメージをビルド"
     echo ""
     echo -e "${YELLOW}オプション:${NC}"
     echo "  -h, --help     このヘルプを表示"
     echo "  -v, --verbose  詳細出力"
-    echo "  -q, --quiet   簡潔出力"
-    echo "  -f, --fail-fast 最初の失敗で停止"
-    echo "  -p, --parallel 並列実行"
-    echo "  --no-cov      カバレッジ測定を無効化"
-    echo "  --html        HTMLレポート生成"
-    echo "  --xml         XMLレポート生成"
+    echo "  --rebuild      イメージを強制再ビルド"
     echo ""
     echo -e "${YELLOW}例:${NC}"
-    echo "  $0                    # 全テスト実行"
-    echo "  $0 unit              # 単体テストのみ"
-    echo "  $0 coverage --html    # カバレッジ付き+HTMLレポート"
-    echo "  $0 quick -f           # クイックテスト+失敗時停止"
-    echo "  $0 watch              # 監視モード"
+    echo "  $0                # 全テスト実行"
+    echo "  $0 unit          # 単体テストのみ"
+    echo "  $0 lint          # 全Lintチェック"
+    echo "  $0 black         # Blackチェックのみ"
+    echo "  $0 format        # Blackフォーマット適用"
+    echo "  $0 build         # Dockerイメージビルド"
+    echo "  $0 clean         # クリーンアップ"
 }
 
 # 環境チェック
 check_environment() {
     echo -e "${BLUE}🔍 環境チェック中...${NC}"
     
-    # Poetryの存在確認
-    if ! command -v poetry &> /dev/null; then
-        echo -e "${RED}❌ Poetryがインストールされていません${NC}"
-        echo "  インストール方法: curl -sSL https://install.python-poetry.org | python3 -"
+    # Dockerの存在確認
+    if ! command -v docker &> /dev/null; then
+        echo -e "${RED}❌ Dockerがインストールされていません${NC}"
+        echo "  インストール方法: https://docs.docker.com/get-docker/"
         exit 1
     fi
     
-    # Pythonの存在確認
-    if ! poetry run python --version &> /dev/null; then
-        echo -e "${RED}❌ Python環境が正しく設定されていません${NC}"
+    # Docker Composeの存在確認
+    if ! docker compose version &> /dev/null; then
+        echo -e "${RED}❌ Docker Composeが利用できません${NC}"
+        echo "  Docker Compose v2が必要です"
         exit 1
     fi
     
-    # pytestの存在確認
-    if ! poetry run pytest --version &> /dev/null; then
-        echo -e "${RED}❌ pytestがインストールされていません${NC}"
-        echo "  インストール方法: poetry install"
+    # docker-compose.ymlの存在確認
+    if [ ! -f "docker-compose.yml" ]; then
+        echo -e "${RED}❌ docker-compose.ymlが見つかりません${NC}"
         exit 1
     fi
     
     echo -e "${GREEN}✅ 環境チェック完了${NC}"
 }
 
-# テスト実行前の準備
-prepare_test() {
-    echo -e "${BLUE}🔧 テスト準備中...${NC}"
+# Dockerイメージのビルド
+build_images() {
+    local rebuild=$1
+    echo -e "${BLUE}🔨 Dockerイメージをビルド中...${NC}"
     
-    # テストディレクトリの存在確認
-    if [ ! -d "tests" ]; then
-        echo -e "${RED}❌ testsディレクトリが見つかりません${NC}"
-        exit 1
+    if [ "$rebuild" = true ]; then
+        echo -e "${YELLOW}  強制再ビルドモード${NC}"
+        docker compose build --no-cache test
+        docker compose build --no-cache lint
+    else
+        docker compose build test
+        docker compose build lint
     fi
     
-    # 一時ディレクトリの作成
-    mkdir -p .pytest_cache
-    mkdir -p htmlcov
-    
-    echo -e "${GREEN}✅ テスト準備完了${NC}"
+    echo -e "${GREEN}✅ Dockerイメージのビルド完了${NC}"
 }
 
 # 全テスト実行
@@ -109,28 +109,12 @@ run_all_tests() {
     
     local args=""
     if [ "$VERBOSE" = true ]; then
-        args="$args -v"
-    fi
-    if [ "$QUIET" = true ]; then
-        args="$args -q"
-    fi
-    if [ "$FAIL_FAST" = true ]; then
-        args="$args -x"
-    fi
-    if [ "$PARALLEL" = true ]; then
-        args="$args -n auto"
-    fi
-    if [ "$NO_COV" = false ]; then
-        args="$args --cov=src --cov-report=term-missing"
-        if [ "$HTML_REPORT" = true ]; then
-            args="$args --cov-report=html:htmlcov"
-        fi
-        if [ "$XML_REPORT" = true ]; then
-            args="$args --cov-report=xml:coverage.xml"
-        fi
+        args="-v"
     fi
     
-    poetry run pytest tests/ $args
+    docker compose run --rm test poetry run pytest tests/ $args --cov=src --cov-report=term-missing --cov-report=xml --cov-report=html
+    
+    echo -e "${GREEN}✅ 全テスト完了${NC}"
 }
 
 # 単体テスト実行
@@ -139,28 +123,12 @@ run_unit_tests() {
     
     local args=""
     if [ "$VERBOSE" = true ]; then
-        args="$args -v"
-    fi
-    if [ "$QUIET" = true ]; then
-        args="$args -q"
-    fi
-    if [ "$FAIL_FAST" = true ]; then
-        args="$args -x"
-    fi
-    if [ "$PARALLEL" = true ]; then
-        args="$args -n auto"
-    fi
-    if [ "$NO_COV" = false ]; then
-        args="$args --cov=src --cov-report=term-missing"
-        if [ "$HTML_REPORT" = true ]; then
-            args="$args --cov-report=html:htmlcov"
-        fi
-        if [ "$XML_REPORT" = true ]; then
-            args="$args --cov-report=xml:coverage.xml"
-        fi
+        args="-v"
     fi
     
-    poetry run pytest tests/unit/ $args
+    docker compose run --rm test-unit
+    
+    echo -e "${GREEN}✅ 単体テスト完了${NC}"
 }
 
 # 統合テスト実行
@@ -169,228 +137,116 @@ run_integration_tests() {
     
     local args=""
     if [ "$VERBOSE" = true ]; then
-        args="$args -v"
-    fi
-    if [ "$QUIET" = true ]; then
-        args="$args -q"
-    fi
-    if [ "$FAIL_FAST" = true ]; then
-        args="$args -x"
+        args="-v"
     fi
     
-    poetry run pytest tests/integration/ $args
+    docker compose run --rm test-integration
+    
+    echo -e "${GREEN}✅ 統合テスト完了${NC}"
 }
 
-# カバレッジ付きテスト実行
-run_coverage_tests() {
-    echo -e "${PURPLE}📊 カバレッジ付きテスト実行中...${NC}"
+# Lintチェック（全て）
+run_lint_all() {
+    echo -e "${PURPLE}🔍 Lintチェック実行中...${NC}"
     
-    local args="-v --cov=src --cov-report=term-missing"
-    if [ "$HTML_REPORT" = true ]; then
-        args="$args --cov-report=html:htmlcov"
-    fi
-    if [ "$XML_REPORT" = true ]; then
-        args="$args --cov-report=xml:coverage.xml"
-    fi
-    if [ "$FAIL_FAST" = true ]; then
-        args="$args -x"
-    fi
+    echo -e "${BLUE}  → Black フォーマットチェック${NC}"
+    docker compose run --rm black
     
-    poetry run pytest tests/ $args
+    echo -e "${BLUE}  → Flake8 スタイルチェック${NC}"
+    docker compose run --rm flake8
+    
+    echo -e "${BLUE}  → MyPy 型チェック${NC}"
+    docker compose run --rm mypy
+    
+    echo -e "${GREEN}✅ 全Lintチェック完了${NC}"
 }
 
-# クイックテスト実行
-run_quick_tests() {
-    echo -e "${PURPLE}⚡ クイックテスト実行中...${NC}"
-    
-    local args="-x --tb=short"
-    if [ "$VERBOSE" = true ]; then
-        args="$args -v"
-    fi
-    
-    poetry run pytest tests/unit/test_crypto_utils.py tests/unit/test_main.py $args
+# Blackチェック
+run_black() {
+    echo -e "${PURPLE}🎨 Black フォーマットチェック中...${NC}"
+    docker compose run --rm black
+    echo -e "${GREEN}✅ Black チェック完了${NC}"
 }
 
-# 監視モード実行
-run_watch_mode() {
-    echo -e "${PURPLE}👀 ファイル変更監視モード開始...${NC}"
-    echo "  ファイル変更を監視してテストを自動実行します"
-    echo "  Ctrl+C で終了"
-    
-    # pytest-watchがインストールされているかチェック
-    if ! poetry run ptw --help &> /dev/null; then
-        echo -e "${YELLOW}⚠️  pytest-watchがインストールされていません${NC}"
-        echo "  インストール方法: poetry add --group dev pytest-watch"
-        echo "  代替として、手動でテストを実行します"
-        
-        while true; do
-            echo -e "${CYAN}🔄 テスト実行中...${NC}"
-            poetry run pytest tests/unit/test_crypto_utils.py -v
-            sleep 2
-        done
-    else
-        poetry run ptw tests/ --runner "poetry run pytest -v"
-    fi
+# Flake8チェック
+run_flake8() {
+    echo -e "${PURPLE}📏 Flake8 スタイルチェック中...${NC}"
+    docker compose run --rm flake8
+    echo -e "${GREEN}✅ Flake8 チェック完了${NC}"
 }
 
-# テストキャッシュとレポートをクリア
-clean_test_artifacts() {
-    echo -e "${BLUE}🧹 テストキャッシュとレポートをクリア中...${NC}"
+# MyPyチェック
+run_mypy() {
+    echo -e "${PURPLE}🔎 MyPy 型チェック中...${NC}"
+    docker compose run --rm mypy
+    echo -e "${GREEN}✅ MyPy チェック完了${NC}"
+}
+
+# Blackフォーマット適用
+apply_format() {
+    echo -e "${PURPLE}✨ Black フォーマット適用中...${NC}"
+    docker compose run --rm lint poetry run black src/ tests/
+    echo -e "${GREEN}✅ フォーマット適用完了${NC}"
+}
+
+# クリーンアップ
+clean_up() {
+    echo -e "${BLUE}🧹 クリーンアップ中...${NC}"
     
-    # pytestキャッシュをクリア
-    if [ -d ".pytest_cache" ]; then
-        rm -rf .pytest_cache
-        echo "✅ .pytest_cache を削除"
-    fi
+    # Dockerイメージの削除
+    echo -e "${YELLOW}  Dockerイメージを削除中...${NC}"
+    docker compose down --rmi local 2>/dev/null || true
     
-    # HTMLカバレッジレポートをクリア
-    if [ -d "htmlcov" ]; then
-        rm -rf htmlcov
-        echo "✅ htmlcov を削除"
-    fi
-    
-    # XMLレポートをクリア
-    if [ -f "coverage.xml" ]; then
-        rm coverage.xml
-        echo "✅ coverage.xml を削除"
-    fi
-    
-    # Pythonキャッシュをクリア
-    find . -type d -name "__pycache__" -exec rm -rf {} + 2>/dev/null || true
-    find . -name "*.pyc" -delete 2>/dev/null || true
+    # テストキャッシュの削除
+    echo -e "${YELLOW}  テストキャッシュを削除中...${NC}"
+    rm -rf .pytest_cache
+    rm -rf htmlcov
+    rm -f coverage.xml
+    rm -f .coverage
     
     echo -e "${GREEN}✅ クリーンアップ完了${NC}"
 }
 
-# テストレポート表示
-show_test_report() {
-    echo -e "${PURPLE}📋 テストレポート${NC}"
-    echo ""
-    
-    # HTMLレポートの確認
-    if [ -f "htmlcov/index.html" ]; then
-        echo -e "${GREEN}📊 HTMLカバレッジレポート:${NC}"
-        echo "   file://$(pwd)/htmlcov/index.html"
-        echo ""
-    fi
-    
-    # XMLレポートの確認
-    if [ -f "coverage.xml" ]; then
-        echo -e "${GREEN}📊 XMLカバレッジレポート:${NC}"
-        echo "   $(pwd)/coverage.xml"
-        echo ""
-    fi
-    
-    # 最新のテスト結果を表示
-    if [ -f ".pytest_cache/v/cache/lastfailed" ]; then
-        echo -e "${RED}❌ 最後に失敗したテスト:${NC}"
-        cat .pytest_cache/v/cache/lastfailed | head -10
-        echo ""
-    fi
-    
-    # テスト統計
-    echo -e "${BLUE}📈 テスト統計:${NC}"
-    echo "  テストファイル数: $(find tests -name "test_*.py" | wc -l)"
-    echo "  テスト関数数: $(grep -r "def test_" tests/ | wc -l)"
-    echo ""
-}
+# オプション解析
+VERBOSE=false
+REBUILD=false
+COMMAND="all"
 
-# テスト結果の要約表示
-show_test_summary() {
-    local exit_code=$1
-    
-    echo ""
-    echo -e "${CYAN}╔══════════════════════════════════════════════════════════════╗${NC}"
-    echo -e "${CYAN}║                        テスト結果要約                        ║${NC}"
-    echo -e "${CYAN}╚══════════════════════════════════════════════════════════════╝${NC}"
-    
-    if [ $exit_code -eq 0 ]; then
-        echo -e "${GREEN}🎉 全てのテストが成功しました！${NC}"
-    else
-        echo -e "${RED}💥 テストが失敗しました${NC}"
-        echo -e "${YELLOW}💡 詳細なエラー情報は上記の出力を確認してください${NC}"
-    fi
-    
-    echo ""
-    echo -e "${BLUE}📊 レポート:${NC}"
-    if [ -f "htmlcov/index.html" ]; then
-        echo -e "   HTML: ${CYAN}file://$(pwd)/htmlcov/index.html${NC}"
-    fi
-    if [ -f "coverage.xml" ]; then
-        echo -e "   XML:  ${CYAN}$(pwd)/coverage.xml${NC}"
-    fi
-    
-    echo ""
-}
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        -h|--help)
+            show_logo
+            show_help
+            exit 0
+            ;;
+        -v|--verbose)
+            VERBOSE=true
+            shift
+            ;;
+        --rebuild)
+            REBUILD=true
+            shift
+            ;;
+        all|unit|integration|lint|black|flake8|mypy|format|clean|build)
+            COMMAND=$1
+            shift
+            ;;
+        *)
+            echo -e "${RED}❌ 不明なオプション: $1${NC}"
+            echo "ヘルプを表示: $0 --help"
+            exit 1
+            ;;
+    esac
+done
 
 # メイン処理
 main() {
-    # デフォルト値設定
-    COMMAND="all"
-    VERBOSE=false
-    QUIET=false
-    FAIL_FAST=false
-    PARALLEL=false
-    NO_COV=false
-    HTML_REPORT=false
-    XML_REPORT=false
-    
-    # 引数解析
-    while [[ $# -gt 0 ]]; do
-        case $1 in
-            -h|--help)
-                show_logo
-                show_help
-                exit 0
-                ;;
-            -v|--verbose)
-                VERBOSE=true
-                shift
-                ;;
-            -q|--quiet)
-                QUIET=true
-                shift
-                ;;
-            -f|--fail-fast)
-                FAIL_FAST=true
-                shift
-                ;;
-            -p|--parallel)
-                PARALLEL=true
-                shift
-                ;;
-            --no-cov)
-                NO_COV=true
-                shift
-                ;;
-            --html)
-                HTML_REPORT=true
-                shift
-                ;;
-            --xml)
-                XML_REPORT=true
-                shift
-                ;;
-            all|unit|integration|coverage|quick|watch|clean|report)
-                COMMAND="$1"
-                shift
-                ;;
-            *)
-                echo -e "${RED}❌ 不明なオプション: $1${NC}"
-                show_help
-                exit 1
-                ;;
-        esac
-    done
-    
-    # ロゴ表示
     show_logo
     
-    # 環境チェック
-    check_environment
-    
-    # テスト準備
-    prepare_test
+    # クリーンとビルド以外は環境チェック
+    if [ "$COMMAND" != "clean" ] && [ "$COMMAND" != "build" ]; then
+        check_environment
+    fi
     
     # コマンド実行
     case $COMMAND in
@@ -403,20 +259,27 @@ main() {
         integration)
             run_integration_tests
             ;;
-        coverage)
-            run_coverage_tests
+        lint)
+            run_lint_all
             ;;
-        quick)
-            run_quick_tests
+        black)
+            run_black
             ;;
-        watch)
-            run_watch_mode
+        flake8)
+            run_flake8
+            ;;
+        mypy)
+            run_mypy
+            ;;
+        format)
+            apply_format
+            ;;
+        build)
+            check_environment
+            build_images $REBUILD
             ;;
         clean)
-            clean_test_artifacts
-            ;;
-        report)
-            show_test_report
+            clean_up
             ;;
         *)
             echo -e "${RED}❌ 不明なコマンド: $COMMAND${NC}"
@@ -425,9 +288,11 @@ main() {
             ;;
     esac
     
-    # テスト結果要約
-    show_test_summary $?
+    echo ""
+    echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    echo -e "${GREEN}✨ 処理が完了しました！${NC}"
+    echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
 }
 
 # スクリプト実行
-main "$@"
+main
