@@ -7,7 +7,7 @@ import cv2
 import numpy as np
 import time
 import threading
-from typing import Optional, Callable
+from typing import Any, Callable, Optional, cast
 import os
 
 
@@ -22,11 +22,11 @@ class CameraQRReader:
             camera_index: カメラのインデックス（通常は0）
         """
         self.camera_index = camera_index
-        self.camera = None
+        self.camera: Optional[Any] = None
         self.is_running = False
-        self.read_thread = None
-        self.on_qr_detected = None
-        self.on_error = None
+        self.read_thread: Optional[threading.Thread] = None
+        self.on_qr_detected: Optional[Callable[[str], None]] = None
+        self.on_error: Optional[Callable[[str], None]] = None
 
     def check_camera_available(self) -> bool:
         """
@@ -92,7 +92,7 @@ class CameraQRReader:
             print(f"カメラ開始エラー: {str(e)}")
             return False
 
-    def stop_camera(self):
+    def stop_camera(self) -> None:
         """カメラを停止"""
         try:
             # 既に停止済みの場合は何もしない
@@ -123,8 +123,10 @@ class CameraQRReader:
                 pass
 
     def start_qr_detection(
-        self, on_qr_detected: Callable = None, on_error: Callable = None
-    ):
+        self,
+        on_qr_detected: Optional[Callable[[str], None]] = None,
+        on_error: Optional[Callable[[str], None]] = None,
+    ) -> None:
         """
         QRコード検出を開始
 
@@ -144,9 +146,9 @@ class CameraQRReader:
         self.read_thread.daemon = True
         self.read_thread.start()
 
-    def _qr_detection_loop(self):
+    def _qr_detection_loop(self) -> None:
         """QRコード検出ループ"""
-        last_detection_time = 0
+        last_detection_time: float = 0.0
         detection_cooldown = 2.0  # 2秒間のクールダウン
 
         try:
@@ -241,7 +243,7 @@ class CameraQRReader:
 
             ret, frame = self.camera.read()
             if ret:
-                return frame
+                return cast(np.ndarray, frame)
             return None
 
         except Exception as e:
@@ -310,7 +312,7 @@ class CameraQRReader:
             return {}
 
 
-def test_camera_qr_reader():
+def test_camera_qr_reader() -> None:
     """カメラQRリーダーのテスト"""
     reader = CameraQRReader()
 
@@ -334,11 +336,11 @@ def test_camera_qr_reader():
     print(f"利用可能なカメラ: {cameras}")
 
     # QRコード検出のテスト（実際の使用時は適切なコールバックを設定）
-    def on_qr_detected(data):
+    def on_qr_detected(data: str) -> None:
         print(f"QRコード検出: {data}")
         reader.stop_camera()
 
-    def on_error(error):
+    def on_error(error: str) -> None:
         print(f"エラー: {error}")
         reader.stop_camera()
 

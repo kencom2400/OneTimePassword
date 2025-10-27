@@ -6,21 +6,21 @@ pyotpライブラリを使用してOTPを生成・管理
 import pyotp
 import time
 from datetime import datetime
-from typing import Dict, List
+from typing import Any, Dict, List, Optional
 import threading
 
 
 class OTPGenerator:
     """ワンタイムパスワード生成クラス"""
 
-    def __init__(self):
+    def __init__(self) -> None:
         """初期化"""
         self.running = False
-        self.update_thread = None
+        self.update_thread: Optional[threading.Thread] = None
 
     def generate_otp(
         self, secret: str, account_name: str = "Unknown"
-    ) -> Dict[str, any]:
+    ) -> Dict[str, Any]:
         """
         ワンタイムパスワードを生成
 
@@ -64,8 +64,8 @@ class OTPGenerator:
         return remaining
 
     def generate_multiple_otps(
-        self, accounts: List[Dict[str, any]]
-    ) -> List[Dict[str, any]]:
+        self, accounts: List[Dict[str, Any]]
+    ) -> List[Dict[str, Any]]:
         """
         複数のアカウントのOTPを生成
 
@@ -89,8 +89,8 @@ class OTPGenerator:
         return otps
 
     def start_realtime_display(
-        self, accounts: List[Dict[str, any]], update_interval: int = 1
-    ):
+        self, accounts: List[Dict[str, Any]], update_interval: int = 1
+    ) -> None:
         """
         リアルタイムでOTPを表示
 
@@ -105,15 +105,15 @@ class OTPGenerator:
         self.update_thread.daemon = True
         self.update_thread.start()
 
-    def stop_realtime_display(self):
+    def stop_realtime_display(self) -> None:
         """リアルタイム表示を停止"""
         self.running = False
         if self.update_thread:
             self.update_thread.join()
 
     def _realtime_update_loop(
-        self, accounts: List[Dict[str, any]], update_interval: int
-    ):
+        self, accounts: List[Dict[str, Any]], update_interval: int
+    ) -> None:
         """
         リアルタイム更新ループ
 
@@ -141,13 +141,13 @@ class OTPGenerator:
                 print(f"\nエラー: {str(e)}")
                 time.sleep(update_interval)
 
-    def _clear_screen(self):
+    def _clear_screen(self) -> None:
         """画面をクリア"""
         import os
 
         os.system("cls" if os.name == "nt" else "clear")
 
-    def _display_otps(self, otps: List[Dict[str, any]]):
+    def _display_otps(self, otps: List[Dict[str, Any]]) -> None:
         """
         OTPを表示
 
@@ -214,7 +214,7 @@ class OTPGenerator:
         except Exception:
             return False
 
-    def get_secret_info(self, secret: str) -> Dict[str, any]:
+    def get_secret_info(self, secret: str) -> Dict[str, Any]:
         """
         セキュリティコードの情報を取得
 
@@ -238,7 +238,7 @@ class OTPGenerator:
             return {"valid": False, "error": str(e)}
 
 
-def test_otp_generator():
+def test_otp_generator() -> None:
     """OTP生成器のテスト"""
     generator = OTPGenerator()
 

@@ -26,7 +26,7 @@ class DockerManager:
         self.image_name = image_name
         self.container_name = container_name
         self.repository_url = "https://github.com/dim13/otpauth"
-        self.local_repo_path = None
+        self.local_repo_path: Optional[str] = None
 
     def check_docker_available(self) -> bool:
         """
@@ -235,7 +235,7 @@ class DockerManager:
         except Exception:
             return False
 
-    def parse_otpauth_output(self, output: str) -> Optional[Dict[str, str]]:
+    def parse_otpauth_output(self, output: str) -> Optional[Dict[str, Optional[str]]]:
         """
         otpauthの出力を解析（urllib.parseを使用）
 
@@ -295,7 +295,7 @@ class DockerManager:
             print(f"出力解析エラー: {str(e)}")
             return None
 
-    def process_qr_url(self, qr_url: str) -> Optional[Dict[str, str]]:
+    def process_qr_url(self, qr_url: str) -> Optional[Dict[str, Optional[str]]]:
         """
         QRコードURLを処理してセキュリティコードを抽出
 
@@ -341,7 +341,7 @@ class DockerManager:
         """
         return qr_url.startswith("otpauth-migration://offline?data=")
 
-    def cleanup(self):
+    def cleanup(self) -> None:
         """リソースをクリーンアップ"""
         try:
             # コンテナを停止
@@ -390,7 +390,7 @@ class DockerManager:
             return False
 
 
-def test_docker_manager():
+def test_docker_manager() -> None:
     """Dockerマネージャーのテスト"""
     manager = DockerManager()
 

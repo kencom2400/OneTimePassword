@@ -6,6 +6,7 @@
 import os
 import base64
 import getpass
+from typing import Optional
 from cryptography.fernet import Fernet
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
@@ -19,7 +20,7 @@ class CryptoUtils:
     # PBKDF2の反復回数
     PBKDF2_ITERATIONS = 100000
 
-    def __init__(self, password: str = None):
+    def __init__(self, password: Optional[str] = None):
         """
         初期化
 
@@ -189,7 +190,7 @@ class CryptoUtils:
             del decrypted_data["encrypted_secret"]
         return decrypted_data
 
-    def clear_memory(self):
+    def clear_memory(self) -> None:
         """メモリ上の機密データをクリア"""
         # Pythonのガベージコレクションに依存
         # 実際の実装では、より積極的なメモリクリアを行う
@@ -198,7 +199,7 @@ class CryptoUtils:
         gc.collect()
 
 
-def create_crypto_utils(password: str = None) -> CryptoUtils:
+def create_crypto_utils(password: Optional[str] = None) -> CryptoUtils:
     """
     CryptoUtilsインスタンスを作成するファクトリ関数
 
@@ -212,7 +213,7 @@ def create_crypto_utils(password: str = None) -> CryptoUtils:
 
 
 # テスト用の関数
-def test_encryption():
+def test_encryption() -> None:
     """暗号化・復号化のテスト"""
     # テスト用のパスワードを使用
     crypto = CryptoUtils("test_password_for_demo")

@@ -14,7 +14,9 @@ from .crypto_utils import CryptoUtils
 class SecurityManager:
     """セキュリティコード管理クラス"""
 
-    def __init__(self, data_file: str = "data/accounts.json", password: str = None):
+    def __init__(
+        self, data_file: str = "data/accounts.json", password: Optional[str] = None
+    ):
         """
         初期化
 
@@ -24,17 +26,17 @@ class SecurityManager:
         """
         self.data_file = data_file
         self.crypto = CryptoUtils(password)
-        self.accounts = []
+        self.accounts: List[Dict[str, Any]] = []
         self._ensure_data_directory()
         self._load_accounts()
 
-    def _ensure_data_directory(self):
+    def _ensure_data_directory(self) -> None:
         """データディレクトリが存在することを確認"""
         data_dir = os.path.dirname(self.data_file)
         if not os.path.exists(data_dir):
             os.makedirs(data_dir)
 
-    def _load_accounts(self):
+    def _load_accounts(self) -> None:
         """アカウントデータを読み込み"""
         try:
             if os.path.exists(self.data_file):
@@ -48,7 +50,7 @@ class SecurityManager:
             print(f"アカウントデータ読み込みエラー: {str(e)}")
             self.accounts = []
 
-    def _save_accounts(self):
+    def _save_accounts(self) -> None:
         """アカウントデータを保存"""
         try:
             data = {
@@ -122,7 +124,7 @@ class SecurityManager:
             decrypted_accounts.append(decrypted_account)
         return decrypted_accounts
 
-    def update_account(self, account_id: str, **kwargs) -> bool:
+    def update_account(self, account_id: str, **kwargs: Any) -> bool:
         """
         アカウント情報を更新
 
@@ -297,7 +299,7 @@ class SecurityManager:
             return False
 
 
-def test_security_manager():
+def test_security_manager() -> None:
     """セキュリティマネージャーのテスト"""
     # テスト用の固定パスワードを使用
     manager = SecurityManager("test_accounts.json", password="test_password_for_demo")

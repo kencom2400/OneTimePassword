@@ -9,7 +9,7 @@ import os
 import time
 import signal
 import threading
-from typing import List, Dict, Any
+from typing import Any, Dict, List, Optional
 
 # プロジェクトのルートディレクトリをPythonパスに追加
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -23,7 +23,7 @@ from src.docker_manager import DockerManager  # noqa: E402
 class OneTimePasswordApp:
     """ワンタイムパスワードアプリケーションのメインクラス"""
 
-    def __init__(self):
+    def __init__(self) -> None:
         """初期化"""
         self.security_manager = SecurityManager()
         self.otp_generator = OTPGenerator()
@@ -36,14 +36,14 @@ class OneTimePasswordApp:
         signal.signal(signal.SIGINT, self._signal_handler)
         signal.signal(signal.SIGTERM, self._signal_handler)
 
-    def _signal_handler(self, signum, frame):
+    def _signal_handler(self, signum: int, frame: Any) -> None:
         """シグナルハンドラー"""
         print("\n\nアプリケーションを終了します...")
         self.running = False
         self.cleanup()
         sys.exit(0)
 
-    def cleanup(self):
+    def cleanup(self) -> None:
         """リソースをクリーンアップ"""
         try:
             self.camera_reader.stop_camera()
@@ -52,7 +52,7 @@ class OneTimePasswordApp:
         except Exception as e:
             print(f"クリーンアップエラー: {str(e)}")
 
-    def add_account_from_camera(self):
+    def add_account_from_camera(self) -> bool:
         """カメラからQRコードを読み取ってアカウントを追加"""
         print("カメラでQRコードを読み取ります...")
         print("QRコードをカメラに向けてください。")
@@ -61,13 +61,13 @@ class OneTimePasswordApp:
         qr_data = None
         self.qr_detected_event.clear()
 
-        def on_qr_detected(data):
+        def on_qr_detected(data: str) -> None:
             nonlocal qr_data
             qr_data = data
             print(f"\nQRコードを検出しました: {data}")
             self.qr_detected_event.set()
 
-        def on_error(error):
+        def on_error(error: str) -> None:
             print(f"エラー: {error}")
 
         try:
@@ -90,7 +90,7 @@ class OneTimePasswordApp:
             if self.camera_reader.is_running:
                 self.camera_reader.stop_camera()
 
-    def add_account_from_image(self, image_path: str):
+    def add_account_from_image(self, image_path: str) -> bool:
         """画像ファイルからQRコードを読み取ってアカウントを追加"""
         print(f"画像ファイルからQRコードを読み取ります: {image_path}")
 
@@ -101,7 +101,7 @@ class OneTimePasswordApp:
             print("QRコードの読み取りに失敗しました")
             return False
 
-    def _process_qr_data(self, qr_data: str):
+    def _process_qr_data(self, qr_data: str) -> bool:
         """QRコードデータを処理してアカウントを追加"""
         try:
             # QRコードデータの形式を検証
@@ -120,12 +120,21 @@ class OneTimePasswordApp:
                 print("QRコードの解析に失敗しました")
                 return False
 
+            # 必須フィールドの検証
+            if (
+                not parsed_data.get("device_name")
+                or not parsed_data.get("account_name")
+                or not parsed_data.get("secret")
+            ):
+                print("必須フィールドが不足しています")
+                return False
+
             # アカウントを追加
             account_id = self.security_manager.add_account(
-                device_name=parsed_data["device_name"],
-                account_name=parsed_data["account_name"],
-                issuer=parsed_data["issuer"],
-                secret=parsed_data["secret"],
+                device_name=str(parsed_data["device_name"]),
+                account_name=str(parsed_data["account_name"]),
+                issuer=str(parsed_data.get("issuer", "")),
+                secret=str(parsed_data["secret"]),
             )
 
             print(f"アカウントを追加しました: {parsed_data['account_name']}")
@@ -136,7 +145,9 @@ class OneTimePasswordApp:
             print(f"QRコード処理エラー: {str(e)}")
             return False
 
-    def show_otp(self, account_id: str = None, show_all: bool = False):
+    def show_otp(
+        self, account_id: Optional[str] = None, show_all: bool = False
+    ) -> bool:
         """OTPを表示"""
         try:
             if show_all:
@@ -154,6 +165,7 @@ class OneTimePasswordApp:
                 # ユーザーが停止するまで待機
                 while self.running:
                     time.sleep(1)
+                return True
 
             elif account_id:
                 # 特定のアカウントのOTPを表示
@@ -170,16 +182,19 @@ class OneTimePasswordApp:
                 # ユーザーが停止するまで待機
                 while self.running:
                     time.sleep(1)
+                return True
 
             else:
                 print("アカウントIDまたは--allオプションを指定してください")
+                return False
 
         except KeyboardInterrupt:
             print("\n表示を停止します...")
+            return True
         finally:
             self.otp_generator.stop_realtime_display()
 
-    def _print_accounts_table(self, accounts: List[Dict[str, Any]]):
+    def _print_accounts_table(self, accounts: List[Dict[str, Any]]) -> None:
         """アカウント情報をテーブル形式で表示（共通メソッド）"""
         if not accounts:
             return
@@ -210,7 +225,7 @@ class OneTimePasswordApp:
                 f"{account['id']:<{id_width}} {account['account_name']:<{name_width}} {account['issuer']:<{issuer_width}} {created_at:<{created_width}}"
             )
 
-    def list_accounts(self):
+    def list_accounts(self) -> None:
         """アカウント一覧を表示"""
         accounts = self.security_manager.list_accounts()
 
@@ -221,7 +236,7 @@ class OneTimePasswordApp:
         print(f"登録済みアカウント ({len(accounts)}件):")
         self._print_accounts_table(accounts)
 
-    def delete_account(self, account_id: str):
+    def delete_account(self, account_id: str) -> bool:
         """アカウントを削除"""
         account = self.security_manager.get_account(account_id)
         if not account:
@@ -244,7 +259,7 @@ class OneTimePasswordApp:
             print("削除をキャンセルしました")
             return False
 
-    def update_account(self, account_id: str, **kwargs):
+    def update_account(self, account_id: str, **kwargs: Any) -> bool:
         """アカウント情報を更新"""
         account = self.security_manager.get_account(account_id)
         if not account:
@@ -258,7 +273,7 @@ class OneTimePasswordApp:
             print("アカウント情報の更新に失敗しました")
         return success
 
-    def search_accounts(self, keyword: str):
+    def search_accounts(self, keyword: str) -> None:
         """アカウントを検索"""
         accounts = self.security_manager.search_accounts(keyword)
 
@@ -269,7 +284,7 @@ class OneTimePasswordApp:
         print(f"検索結果 ({len(accounts)}件):")
         self._print_accounts_table(accounts)
 
-    def setup_environment(self):
+    def setup_environment(self) -> bool:
         """環境をセットアップ"""
         print("Docker環境をセットアップしています...")
         success = self.docker_manager.setup_environment()
@@ -279,7 +294,7 @@ class OneTimePasswordApp:
             print("環境のセットアップに失敗しました")
         return success
 
-    def delete_docker_image(self):
+    def delete_docker_image(self) -> bool:
         """Dockerイメージを削除"""
         print("Dockerイメージを削除しています...")
         success = self.docker_manager.delete_image()
@@ -289,7 +304,7 @@ class OneTimePasswordApp:
             print("Dockerイメージの削除に失敗しました")
         return success
 
-    def show_status(self):
+    def show_status(self) -> None:
         """アプリケーションの状態を表示"""
         print("アプリケーション状態:")
         print("-" * 40)
@@ -311,7 +326,7 @@ class OneTimePasswordApp:
             self.camera_reader.stop_camera()
 
 
-def main():
+def main() -> None:
     """メイン関数"""
     parser = argparse.ArgumentParser(
         description="ワンタイムパスワード生成アプリケーション",
