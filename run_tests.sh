@@ -78,8 +78,8 @@ check_environment() {
     fi
     
     # docker-compose.ymlの存在確認
-    if [ ! -f "docker-compose.yml" ]; then
-        echo -e "${RED}❌ docker-compose.ymlが見つかりません${NC}"
+    if [ ! -f "docker/docker-compose.yml" ]; then
+        echo -e "${RED}❌ docker/docker-compose.ymlが見つかりません${NC}"
         exit 1
     fi
     
@@ -93,11 +93,11 @@ build_images() {
     
     if [ "$rebuild" = true ]; then
         echo -e "${YELLOW}  強制再ビルドモード${NC}"
-        docker compose build --no-cache test
-        docker compose build --no-cache lint
+        docker compose -f docker/docker-compose.yml build --no-cache test
+        docker compose -f docker/docker-compose.yml build --no-cache lint
     else
-        docker compose build test
-        docker compose build lint
+        docker compose -f docker/docker-compose.yml build test
+        docker compose -f docker/docker-compose.yml build lint
     fi
     
     echo -e "${GREEN}✅ Dockerイメージのビルド完了${NC}"
@@ -112,7 +112,7 @@ run_all_tests() {
         args="-v"
     fi
     
-    docker compose run --rm test poetry run pytest tests/ $args --cov=src --cov-report=term-missing --cov-report=xml --cov-report=html
+    docker compose -f docker/docker-compose.yml run --rm test poetry run pytest tests/ $args --cov=src --cov-report=term-missing --cov-report=xml --cov-report=html
     
     echo -e "${GREEN}✅ 全テスト完了${NC}"
 }
@@ -126,7 +126,7 @@ run_unit_tests() {
         args="-v"
     fi
     
-    docker compose run --rm test-unit
+    docker compose -f docker/docker-compose.yml run --rm test-unit
     
     echo -e "${GREEN}✅ 単体テスト完了${NC}"
 }
@@ -140,7 +140,7 @@ run_integration_tests() {
         args="-v"
     fi
     
-    docker compose run --rm test-integration
+    docker compose -f docker/docker-compose.yml run --rm test-integration
     
     echo -e "${GREEN}✅ 統合テスト完了${NC}"
 }
@@ -150,13 +150,13 @@ run_lint_all() {
     echo -e "${PURPLE}🔍 Lintチェック実行中...${NC}"
     
     echo -e "${BLUE}  → Black フォーマットチェック${NC}"
-    docker compose run --rm black
+    docker compose -f docker/docker-compose.yml run --rm black
     
     echo -e "${BLUE}  → Flake8 スタイルチェック${NC}"
-    docker compose run --rm flake8
+    docker compose -f docker/docker-compose.yml run --rm flake8
     
     echo -e "${BLUE}  → MyPy 型チェック${NC}"
-    docker compose run --rm mypy
+    docker compose -f docker/docker-compose.yml run --rm mypy
     
     echo -e "${GREEN}✅ 全Lintチェック完了${NC}"
 }
@@ -164,28 +164,28 @@ run_lint_all() {
 # Blackチェック
 run_black() {
     echo -e "${PURPLE}🎨 Black フォーマットチェック中...${NC}"
-    docker compose run --rm black
+    docker compose -f docker/docker-compose.yml run --rm black
     echo -e "${GREEN}✅ Black チェック完了${NC}"
 }
 
 # Flake8チェック
 run_flake8() {
     echo -e "${PURPLE}📏 Flake8 スタイルチェック中...${NC}"
-    docker compose run --rm flake8
+    docker compose -f docker/docker-compose.yml run --rm flake8
     echo -e "${GREEN}✅ Flake8 チェック完了${NC}"
 }
 
 # MyPyチェック
 run_mypy() {
     echo -e "${PURPLE}🔎 MyPy 型チェック中...${NC}"
-    docker compose run --rm mypy
+    docker compose -f docker/docker-compose.yml run --rm mypy
     echo -e "${GREEN}✅ MyPy チェック完了${NC}"
 }
 
 # Blackフォーマット適用
 apply_format() {
     echo -e "${PURPLE}✨ Black フォーマット適用中...${NC}"
-    docker compose run --rm lint poetry run black src/ tests/
+    docker compose -f docker/docker-compose.yml run --rm lint poetry run black src/ tests/
     echo -e "${GREEN}✅ フォーマット適用完了${NC}"
 }
 
@@ -195,7 +195,7 @@ clean_up() {
     
     # Dockerイメージの削除
     echo -e "${YELLOW}  Dockerイメージを削除中...${NC}"
-    docker compose down --rmi local 2>/dev/null || true
+    docker compose -f docker/docker-compose.yml down --rmi local 2>/dev/null || true
     
     # テストキャッシュの削除
     echo -e "${YELLOW}  テストキャッシュを削除中...${NC}"
