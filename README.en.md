@@ -6,149 +6,33 @@ A one-time password (OTP) generation application with functionality similar to G
 
 ## 📑 Table of Contents
 
-- [🚀 Key Features](#-key-features)
-- [📖 Usage](#-usage)
-- [🛠️ Setup](#️-setup)
-- [📋 Requirements](#-requirements)
-- [🔒 Security](#-security)
+### 👤 For Users (Using the App)
+- [🚀 Quick Start](#-quick-start)
+- [📖 Basic Usage](#-basic-usage)
+- [📋 Command Reference](#-command-reference)
+- [🔒 Security Settings](#-security-settings)
 - [🐛 Troubleshooting](#-troubleshooting)
-- [📝 License](#-license)
-- [📞 Support](#-support)
-- [🔧 Developer Information](#-developer-information)
-- [🧪 Testing](#-testing) ⭐ **Test Design Document Included**
-- [🤝 Contributing](#-contributing)
 
-## 🚀 Key Features
+### 👨‍💻 For Developers (Developing the App)
+- [🛠️ Development Environment Setup](#️-development-environment-setup)
+- [📂 Project Structure](#-project-structure)
+- [🔧 Development Tools and Commands](#-development-tools-and-commands)
+- [🧪 Testing and Coverage](#-testing-and-coverage)
+- [📚 Developer Documentation](#-developer-documentation)
 
-- **QR Code Reading**: Read QR codes from PC camera or image files
-- **Multiple Account Management**: Manage and display OTPs for multiple accounts simultaneously
-- **Real-time Display**: Auto-update OTPs every second with progress bar
-- **Secure Storage**: Security codes are encrypted with PBKDF2 and stored locally
-- **Command-line Operation**: Intuitive command-line interface
-- **Docker Integration**: QR code parsing using otpauth container
-- **Account Management**: List, search, update, and delete functionality
+### 📚 Other
+- [🚀 Key Features](#-key-features)
+- [📋 System Requirements](#-system-requirements)
 
-## 📖 Usage
+---
 
-### 🚀 Running with Wrapper Shell (Recommended - Easiest)
+## 👤 For Users (Using the App)
 
-**No need to worry about Poetry environment!** The wrapper shell automatically sets up the Poetry environment.
+This section is for those who want to **use** the OneTimePassword application.
 
-```bash
-# First run automatically executes Poetry install
-./otp [command]
+### 🚀 Quick Start
 
-# Subsequent runs execute immediately
-./otp show --all
-./otp list
-./otp add --camera
-```
-
-**Features:**
-- ✅ Ready to use right after cloning (no need to remember Poetry install)
-- ✅ No need for `poetry run` commands
-- ✅ Simple and intuitive execution method
-- ✅ Automatically installs dependencies on first run
-
-### 🐳 Running with Docker
-
-Using Docker eliminates the need for environment setup and provides immediate usability.
-
-```bash
-# Run tests
-docker-compose run --rm test
-
-# Run unit tests only
-docker-compose run --rm test-unit
-
-# Run integration tests only
-docker-compose run --rm test-integration
-
-# Lint checks (Black, Flake8, MyPy)
-docker-compose run --rm black
-docker-compose run --rm flake8
-docker-compose run --rm mypy
-
-# Run the application
-docker-compose run --rm app poetry run python src/main.py [command]
-```
-
-### Running with Poetry Environment (Traditional Method)
-
-```bash
-# Run within Poetry virtual environment
-poetry run python src/main.py [command]
-
-# Or activate the virtual environment first
-poetry shell
-python src/main.py [command]
-```
-
-### Command List
-
-#### Adding Accounts
-
-```bash
-# Run with wrapper shell (recommended)
-./otp add --camera                    # Read QR code with camera
-./otp add --image qr_code.png         # Read QR code from image file
-
-# Or traditional method
-poetry run python src/main.py add --camera
-poetry run python src/main.py add --image qr_code.png
-```
-
-#### Displaying OTP
-
-```bash
-# Run with wrapper shell (recommended)
-./otp show --all                      # Display OTP for all accounts (real-time updates)
-./otp show <account_id>               # Display OTP for specific account
-
-# Or traditional method
-poetry run python src/main.py show --all
-poetry run python src/main.py show <account_id>
-```
-
-**Example (Display All Accounts):**
-
-![OTP Display Example](images/command_show_all.png)
-
-#### Account Management
-
-```bash
-# Run with wrapper shell (recommended)
-./otp list                            # Display account list
-./otp delete <account_id>             # Delete account
-./otp update <account_id> --name "New Name"  # Update account information
-./otp search "keyword"                # Search accounts
-
-# Or traditional method
-poetry run python src/main.py list
-poetry run python src/main.py delete <account_id>
-poetry run python src/main.py update <account_id> --name "New Name"
-poetry run python src/main.py search "keyword"
-```
-
-#### System Management
-
-```bash
-# Run with wrapper shell (recommended)
-./otp status                          # Display application status
-./otp setup                           # Setup Docker environment
-./otp cleanup                         # Remove Docker image
-
-# Or traditional method
-poetry run python src/main.py status
-poetry run python src/main.py setup
-poetry run python src/main.py cleanup
-```
-
-## 🛠️ Setup
-
-### 🚀 Quick Start (Using Wrapper Shell)
-
-**The simplest method!** Get started with just these steps:
+**The simplest way to get started:** Using the wrapper shell
 
 ```bash
 # 1. Clone the repository
@@ -159,202 +43,201 @@ cd OneTimePassword
 curl -sSL https://install.python-poetry.org | python3 -
 export PATH="$HOME/.local/bin:$PATH"
 
-# 3. Run immediately! (automatically installs dependencies on first run)
+# 3. Run immediately! (Dependencies are installed automatically on first run)
 ./otp --help
+
+# 4. Set up master password (first time only)
+echo "your_strong_password" > ~/.otp_password
+chmod 600 ~/.otp_password
 
 # Done! That's all 🎉
 ```
 
-### 1. Poetry Environment Setup (Traditional Method)
+**Next Steps:**
+- [Basic Usage](#-basic-usage) - Add accounts and display OTPs
+- [Security Settings](#-security-settings) - Detailed password configuration
 
-If you prefer manual setup instead of using the wrapper shell:
+### 📖 Basic Usage
+
+#### 1. Add an Account
 
 ```bash
-# If Poetry is not installed
-curl -sSL https://install.python-poetry.org | python3 -
+# Read QR code from camera
+./otp add --camera
 
-# PATH configuration (add to ~/.zshrc)
-echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.zshrc
-source ~/.zshrc
-
-# Navigate to project directory
-cd /path/to/OneTimePassword
-
-# Install dependencies
-poetry install
+# Or add from an image file
+./otp add --image qr_code.png
 ```
 
-### 2. System Dependencies Installation (macOS)
+#### 2. Display OTPs
 
 ```bash
-# zbar library (for QR code reading)
-brew install zbar
+# Display all accounts' OTPs (real-time updates)
+./otp show --all
+
+# Display specific account only
+./otp show <account_id>
 ```
 
-### 3. Docker Environment Setup
+#### 3. Manage Accounts
 
 ```bash
-# Setup Docker environment (clone otpauth repository and build image)
-poetry run python src/main.py setup
+# List all accounts
+./otp list
 
-# Verify setup completion
-docker images | grep otpauth
-# Example output: otpauth      latest    eeb083890349   9 minutes ago   21.1MB
+# Search accounts
+./otp search "GitHub"
+
+# Update account information
+./otp update <account_id> --name "New Name"
+
+# Delete an account
+./otp delete <account_id>
 ```
 
-**Note**: The QR code reading functionality will automatically attempt to build the image if it doesn't exist. Initial use may take some time.
-
-### 4. Environment Testing
+#### 4. Check System Status
 
 ```bash
-# Run with wrapper shell (recommended)
-./otp --help                          # Check application functionality
-./otp status                          # Check status
+# Check application status
+./otp status
 
-# Or traditional method
-poetry run python src/main.py --help
-poetry run python src/main.py status
+# Set up Docker environment (first time only)
+./otp setup
+
+# Clean up Docker images
+./otp cleanup
 ```
 
-## 📋 Requirements
+### 📋 Command Reference
 
-- **Python**: 3.8.1 or higher (Recommended: 3.13.9)
-- **Poetry**: Dependency management
-- **Docker**: For QR code parsing
-- **macOS**: Camera access permissions
-- **System Libraries**: zbar (for QR code reading)
+#### Choosing Execution Method
 
-## 🔒 Security
+There are three ways to run this application:
 
-- **Encryption**: Security codes are encrypted with PBKDF2 before storage
-- **Random Salts**: Generate a unique 16-byte random salt for each encryption (protects against rainbow table attacks)
-- **Local Storage**: Confidential data is not committed to GitHub
-- **Memory Clearing**: Sensitive data is cleared immediately after use
-- **Permission Management**: Appropriate file permission settings
-- **Camera Access**: Access camera with minimal permissions
-- **Environment Variables**: Master password is securely managed through environment variables
+| Method | Command Example | Rating | Use Case |
+|--------|----------------|--------|----------|
+| **Wrapper Shell** | `./otp show --all` | ⭐⭐⭐ | Daily use (easiest) |
+| **Poetry Direct** | `poetry run python src/main.py show --all` | ⭐⭐ | Development/Debugging |
+| **Docker** | `docker-compose -f docker/docker-compose.yml run --rm app ...` | ⭐ | Test execution |
 
-### 🔐 Encryption Mechanism
+Following command examples use the **wrapper shell format**. For other methods, refer to the table above.
 
-This application follows industry-standard security practices:
+#### Command List
 
-1. **Unique Salt Per Encryption**: Even encrypting the same data produces different results each time
-2. **PBKDF2 Key Derivation**: Derives encryption keys from master password with 100,000 iterations
-3. **Fernet Encryption**: Authenticated encryption using AES-128-CBC and HMAC-SHA256
-4. **Salt Storage**: 16-byte random salt is stored alongside encrypted data
-
-### 🔐 Master Password Configuration (Important)
-
-The application uses a master password to encrypt security codes.
-Configure the master password using one of the following methods:
-
-#### Method 1: Environment Variable (Recommended)
+**Account Management**
 
 ```bash
-# Add to ~/.zshrc or ~/.bashrc
-export OTP_MASTER_PASSWORD="your_strong_password_here"
-
-# Apply settings
-source ~/.zshrc
+./otp add --camera              # Read QR code from camera
+./otp add --image <path>        # Read from image file
+./otp list                      # List accounts
+./otp show --all                # Display all OTPs (real-time)
+./otp show <account_id>         # Display specific account's OTP
+./otp search <keyword>          # Search accounts
+./otp update <account_id> --name <name> # Update account
+./otp delete <account_id>       # Delete account
 ```
 
-#### Method 2: Password File (More Secure - Recommended)
-
-**Using default file `~/.otp_password` (no environment variable needed):**
+**System Management**
 
 ```bash
-# Create password file with restricted permissions
-echo "your_strong_password_here" > ~/.otp_password
+./otp status                    # Display status
+./otp setup                     # Set up Docker environment
+./otp cleanup                   # Delete Docker images
+./otp --help                    # Display help
+```
+
+### 🔒 Security Settings
+
+#### About Master Password
+
+This application uses a master password to encrypt and store security codes.
+
+**Encryption Mechanism:**
+- PBKDF2 key derivation (100,000 iterations)
+- Fernet encryption (AES-128-CBC + HMAC-SHA256)
+- Unique 16-byte random salt for each encryption
+- Local storage only (not committed to GitHub)
+
+#### How to Set Master Password
+
+**Method 1: Password File (Recommended - Easiest)**
+
+```bash
+# Save to default file (no environment variable needed)
+echo "your_strong_password" > ~/.otp_password
 chmod 600 ~/.otp_password
 
-# That's it! No environment variable needed
-poetry run python src/main.py show --all
+# That's it!
+./otp show --all
 ```
 
-**Using custom password file location:**
+**Method 2: Custom Password File**
 
 ```bash
-# Create password file at custom location
-echo "your_strong_password_here" > /path/to/custom_password
-chmod 600 /path/to/custom_password
+# Save to custom location
+echo "your_strong_password" > /path/to/password
+chmod 600 /path/to/password
 
-# Add to ~/.zshrc or ~/.bashrc
-export OTP_PASSWORD_FILE="/path/to/custom_password"
-
-# Apply settings
+# Specify location via environment variable (add to ~/.zshrc)
+echo 'export OTP_PASSWORD_FILE="/path/to/password"' >> ~/.zshrc
 source ~/.zshrc
 ```
 
-#### Method 3: Interactive Input
+**Method 3: Environment Variable**
 
-If neither environment variables nor password file are configured, you will be prompted to enter the password when the application starts.
+```bash
+# Add to ~/.zshrc
+echo 'export OTP_MASTER_PASSWORD="your_strong_password"' >> ~/.zshrc
+source ~/.zshrc
+```
 
-**⚠️ Security Warning**:
-- Use a strong, difficult-to-guess master password
-- When using a password file, ensure proper file permissions (600) are set
-- Never commit environment variables or password files to version control systems
-- Changing the password may make existing data unrecoverable
+**Method 4: Interactive Input**
 
-## 🐛 Troubleshooting
+If none of the above are configured, you'll be prompted for a password when running the application.
 
-### When Camera is Not Recognized
+**⚠️ Security Warning:**
+- Use a strong, hard-to-guess password
+- Always set file permissions to 600 for password files
+- Never commit passwords to version control systems
+- Changing the password will make existing data unrecoverable
+
+### 🐛 Troubleshooting
+
+#### Camera Not Recognized
 
 ```bash
 # Check camera connection
 poetry run python -c "import cv2; print(cv2.VideoCapture(0).isOpened())"
 
-# Check camera permissions (macOS)
+# On macOS: Check camera permissions in System Preferences
 # System Preferences > Security & Privacy > Privacy > Camera
 ```
 
-### Docker Errors
+#### Docker Errors
 
 ```bash
 # Check Docker status
 docker --version
-docker info
-
-# Check Docker daemon is running
 docker ps
 
-# Check network connection
-ping github.com
-
-# If otpauth image doesn't exist (will be auto-built)
-poetry run python src/main.py add --camera
-
-# Manual setup
-poetry run python src/main.py setup
-
-# Verify image
+# Check otpauth image
 docker images | grep otpauth
 
-# Remove image
-poetry run python src/main.py cleanup
+# If image doesn't exist, it will be built automatically
+./otp add --camera
+
+# Or manually set up
+./otp setup
 ```
 
-### When QR Code Cannot Be Read
+#### QR Code Cannot Be Read
 
-- Verify QR code is clear and sufficiently large
+- Ensure QR code is clear and sufficiently large
 - Adjust camera focus
 - Improve lighting conditions
-- Check QR code format (`otpauth-migration://offline?data=...`)
+- Verify QR code format (`otpauth-migration://offline?data=...`)
 
-### QR Code Parsing Errors
-
-```bash
-# Debug parsing errors
-poetry run python -c "
-from src.docker_manager import DockerManager
-dm = DockerManager()
-# Test parsing with sample output
-test_output = 'otpauth://totp/account?algorithm=SHA1&digits=6&issuer=GitHub&period=30&secret=SECRET'
-result = dm.parse_otpauth_output(test_output)
-print('Parse result:', result)
-"
-```
-
-### Poetry Environment Issues
+#### Poetry Environment Issues
 
 ```bash
 # Recreate virtual environment
@@ -363,301 +246,296 @@ poetry install
 
 # Update dependencies
 poetry update
-
-# Regenerate lock file
-poetry lock
 ```
-
-## 📝 License
-
-This project is released under the MIT License. See the [LICENSE](LICENSE) file for details.
-
-## 📞 Support
-
-If you encounter issues, please follow these steps:
-
-1. Check the [Troubleshooting](#-troubleshooting) section
-2. Search existing Issues
-3. Create a new Issue (include detailed information)
 
 ---
 
-## 🔧 Developer Information
+## 👨‍💻 For Developers (Developing the App)
 
-### Project Structure
+This section is for those who want to **contribute to development** of the OneTimePassword application.
+
+### 🛠️ Development Environment Setup
+
+#### Required Tools
+
+- **Python 3.13 or higher** (recommended: 3.13.9)
+- **Poetry** (dependency management)
+- **Docker** (QR code parsing, test execution)
+- **Git** (version control)
+- **zbar** (QR code reading library)
+
+#### Setup Steps
+
+```bash
+# 1. Clone the repository
+git clone https://github.com/your-username/OneTimePassword.git
+cd OneTimePassword
+
+# 2. Install Poetry
+curl -sSL https://install.python-poetry.org | python3 -
+export PATH="$HOME/.local/bin:$PATH"
+
+# 3. Install dependencies
+poetry install
+
+# 4. Install system libraries (macOS)
+brew install zbar
+
+# 5. Set up Docker environment
+poetry run python src/main.py setup
+
+# 6. Verify installation
+poetry run python src/main.py --help
+```
+
+#### Verify Development Environment
+
+```bash
+# Check Python version
+python --version  # 3.13 or higher
+
+# Check Poetry
+poetry --version
+
+# Check virtual environment
+poetry env info
+
+# Check Docker
+docker --version
+docker ps
+```
+
+### 📂 Project Structure
 
 ```
 OneTimePassword/
-├── otp                           # 🚀 Execution wrapper shell (recommended)
-├── run_tests.sh                  # Test execution wrapper shell
-├── src/                          # Source code
-│   ├── __init__.py              # Package initialization
-│   ├── main.py                  # Main application (CLI)
-│   ├── camera_qr_reader.py      # Camera QR code reading
-│   ├── otp_generator.py         # OTP generation/display
-│   ├── security_manager.py      # Security code management
-│   ├── crypto_utils.py          # Encryption utilities
-│   └── docker_manager.py        # Docker container management
-├── tests/                        # Test code
-│   ├── TEST_DESIGN.md           # Test design document
-│   ├── conftest.py              # pytest common fixtures
-│   ├── unit/                    # Unit tests (163 tests)
-│   │   ├── test_crypto_utils.py
-│   │   ├── test_otp_generator.py
-│   │   ├── test_security_manager.py
-│   │   ├── test_camera_qr_reader.py
-│   │   ├── test_docker_manager.py
-│   │   └── test_main.py
-│   ├── integration/             # Integration tests (10 tests)
-│   │   └── test_integration.py
-│   └── run_tests.py             # Python test execution script
-├── data/                         # Data directory
-│   └── accounts.json            # Account data (encrypted)
-├── htmlcov/                      # Coverage HTML reports (auto-generated)
-├── pyproject.toml               # Poetry configuration file
-├── poetry.lock                  # Poetry dependency lock file
-├── requirements.txt             # Traditional dependencies (reference)
-├── .gitignore                   # Git exclusion settings
-├── LICENSE                      # License file
-├── README.md                    # This file (Japanese)
-├── README.en.md                 # This file (English)
-├── REQUIREMENTS_OVERVIEW.md     # High-level project requirements
-└── requirements_specification.md # Requirements specification
+├── 🚀 Executables
+│   ├── otp                       # Wrapper shell (for users)
+│   └── run_tests.sh              # Test execution script
+│
+├── 📁 Source Code
+│   └── src/
+│       ├── main.py               # Main application (CLI)
+│       ├── camera_qr_reader.py   # Camera QR code reading
+│       ├── otp_generator.py      # OTP generation and display
+│       ├── security_manager.py   # Account management and encryption
+│       ├── crypto_utils.py       # Encryption utilities
+│       └── docker_manager.py     # Docker container management
+│
+├── 🧪 Test Code
+│   └── tests/
+│       ├── unit/                 # Unit tests (163 tests)
+│       ├── integration/          # Integration tests (10 tests)
+│       └── conftest.py           # pytest configuration
+│
+├── 📚 Documentation
+│   ├── README.md                 # Japanese user guide
+│   ├── README.en.md              # This file
+│   └── docs/
+│       ├── README.md             # Developer documentation overview
+│       ├── REQUIREMENTS_OVERVIEW.md
+│       ├── REQUIREMENTS_SPECIFICATION.md
+│       └── TEST_DESIGN.md        # Test design document
+│
+├── 🐳 Docker Related
+│   └── docker/
+│       ├── docker-compose.yml    # Docker Compose configuration
+│       ├── Dockerfile            # For application
+│       ├── Dockerfile.test       # For testing
+│       └── Dockerfile.lint       # For linting
+│
+└── ⚙️ Configuration Files
+    ├── pyproject.toml            # Poetry configuration
+    ├── poetry.lock               # Dependency lock file
+    └── .gitignore                # Git exclusion settings
 ```
 
-### Technical Specifications
+### 🔧 Development Tools and Commands
 
-#### Technologies Used
-
-- **Language**: Python 3.8.1+
-- **Dependency Management**: Poetry
-- **Virtual Environment**: pyenv + Poetry
-- **Encryption**: cryptography (PBKDF2)
-- **QR Code**: OpenCV (cv2.QRCodeDetector)
-- **OTP Generation**: pyotp
-- **Container**: Docker
-- **Image Processing**: Pillow
-
-#### Dependencies
-
-```toml
-[tool.poetry.dependencies]
-python = "^3.8.1"
-pyotp = "^2.9.0"
-opencv-python = "^4.8.1"
-cryptography = "^41.0.7"
-Pillow = "^10.0.1"
-docker = "^6.1.3"
-numpy = "^1.24.0"
-
-[tool.poetry.group.dev.dependencies]
-pytest = "^7.0.0"
-pytest-cov = "^4.0.0"
-pytest-mock = "^3.0.0"
-pytest-asyncio = "^0.21.0"
-black = "^23.0.0"
-flake8 = "^6.0.0"
-mypy = "^1.0.0"
-```
-
-### Development Environment Information
-
-- **Python**: 3.13.9 (managed by pyenv)
-- **Poetry**: 2.2.1
-- **Virtual Environment**: `/Users/kencom/Library/Caches/pypoetry/virtualenvs/onetimepassword-78G70__u-py3.13`
-- **OS**: macOS Sequoia 24.6.0
-
-## 🧪 Testing
-
-### 📚 Test Design Document
-
-For detailed test design, please refer to the [Test Design Document (TEST_DESIGN.md)](tests/TEST_DESIGN.md).
-
-The test design document includes:
-- Test strategy and test pyramid
-- Module-specific test design (173 test cases)
-- Integration and E2E test design
-- Mocking best practices
-- Troubleshooting guide
-- Detailed test execution methods
-
-### 📊 Test Statistics
-
-- **Total Tests**: 173
-  - Unit tests: 163
-  - Integration tests: 10
-- **Test Success Rate**: 100% ✅
-- **Execution Time**: Approximately 2.8 seconds
-- **Current Coverage**: 67%
-- **Target Coverage**: 90%+
-
-### 🚀 Test Execution Methods
-
-#### 1. Wrapper Shell Script (Recommended)
+#### Code Quality Checks
 
 ```bash
-# Run all tests (recommended)
+# Code formatting (Black)
+poetry run black src/ tests/
+
+# Format check (no changes)
+poetry run black --check --diff src/ tests/
+
+# Lint check (Flake8)
+poetry run flake8 src/ tests/ --count --statistics
+
+# Type check (MyPy)
+poetry run mypy src/ --ignore-missing-imports --show-error-codes
+```
+
+#### Batch Execution (Using Docker)
+
+```bash
+# Run all lint checks
+docker-compose -f docker/docker-compose.yml run --rm black
+docker-compose -f docker/docker-compose.yml run --rm flake8
+docker-compose -f docker/docker-compose.yml run --rm mypy
+
+# Apply formatting
+docker-compose -f docker/docker-compose.yml run --rm format
+```
+
+#### Debug Execution
+
+```bash
+# Run with Python debugger
+poetry run python -m pdb src/main.py [command]
+
+# Verbose logging
+poetry run python src/main.py --verbose [command]
+
+# Display environment information
+poetry run python src/main.py status
+```
+
+#### Dependency Management
+
+```bash
+# Add dependency
+poetry add <package>
+
+# Add dev dependency
+poetry add --group dev <package>
+
+# Update dependencies
+poetry update
+
+# Show dependency tree
+poetry show --tree
+```
+
+### 🧪 Testing and Coverage
+
+#### How to Run Tests
+
+**Quick Execution (Recommended)**
+
+```bash
+# Run all tests (easiest)
 ./run_tests.sh
 
-# Run unit tests only
-./run_tests.sh unit
-
-# Run integration tests only
-./run_tests.sh integration
-
-# Run tests with coverage (generate HTML/XML reports)
+# Run with coverage
 ./run_tests.sh coverage --html
 
-# Quick test execution (no coverage)
+# Unit tests only
+./run_tests.sh unit
+
+# Integration tests only
+./run_tests.sh integration
+
+# Quick run (no coverage)
 ./run_tests.sh quick
 
-# Watch mode (auto-run on file changes)
-./run_tests.sh watch
-
-# Clear test cache
+# Clean test cache
 ./run_tests.sh clean
 
 # Display help
 ./run_tests.sh --help
 ```
 
-#### 2. Direct Execution
+**Detailed Execution Options**
 
 ```bash
 # Run all tests
 poetry run pytest tests/ -v
 
-# Run tests with coverage
+# Run with coverage
 poetry run pytest tests/ --cov=src --cov-report=html --cov-report=term
 
-# Run specific module tests
+# Test specific module
 poetry run pytest tests/unit/test_crypto_utils.py -v
 
-# Run specific test class
+# Test specific class
 poetry run pytest tests/unit/test_main.py::TestOneTimePasswordApp -v
 
-# Run specific test function
-poetry run pytest tests/unit/test_main.py::TestOneTimePasswordApp::test_add_account_from_camera_success -v
+# Test specific function
+poetry run pytest tests/unit/test_main.py::test_add_account_success -v
 
 # Parallel execution (faster)
 poetry run pytest tests/ -n auto
 
-# Execute with timeout (for hanging tests)
-timeout 120 poetry run pytest tests/ -v
-```
-
-### 🗂️ Test Structure
-
-```
-tests/
-├── TEST_DESIGN.md           # Test design document (detailed documentation)
-├── conftest.py              # pytest common fixtures
-├── unit/                    # Unit tests (163 tests)
-│   ├── test_crypto_utils.py      # Encryption utilities (25 tests)
-│   ├── test_otp_generator.py     # OTP generation (19 tests)
-│   ├── test_security_manager.py  # Security management (23 tests)
-│   ├── test_camera_qr_reader.py  # Camera QR reading (30 tests)
-│   ├── test_docker_manager.py    # Docker management (32 tests)
-│   └── test_main.py              # Main app (34 tests)
-├── integration/             # Integration tests (10 tests)
-│   └── test_integration.py
-├── run_tests.py             # Python test execution script
-└── run_tests.sh             # Bash wrapper script
-```
-
-### 📋 Test Execution Options
-
-#### Wrapper Shell Options
-
-- `-v, --verbose`: Detailed output (display test case names and results)
-- `-q, --quiet`: Brief output (summary only)
-- `-f, --fail-fast`: Stop at first failure
-- `-p, --parallel`: Parallel execution (faster)
-- `--no-cov`: Disable coverage measurement (faster execution)
-- `--html`: Generate HTML coverage report (`htmlcov/index.html`)
-- `--xml`: Generate XML coverage report (`coverage.xml`)
-- `-m MARKER`: Run only tests with specific marker
-
-#### pytest Option Examples
-
-```bash
-# Rerun only failed tests
+# Re-run only failed tests
 poetry run pytest tests/ --lf
 
-# Run failed tests first
-poetry run pytest tests/ --ff
-
-# Short traceback display
-poetry run pytest tests/ --tb=short
-
-# No traceback display
-poetry run pytest tests/ --tb=no
-
-# Detailed output (each test detail)
+# Verbose output
 poetry run pytest tests/ -vv
 
-# Display test execution time
+# Show test execution time
 poetry run pytest tests/ --durations=10
 ```
 
-### 🔍 Coverage Reports
-
-After test execution, the following coverage reports are generated:
+**Test Execution in Docker Environment**
 
 ```bash
-# View HTML report
+# All tests
+docker-compose -f docker/docker-compose.yml run --rm test
+
+# Unit tests only
+docker-compose -f docker/docker-compose.yml run --rm test-unit
+
+# Integration tests only
+docker-compose -f docker/docker-compose.yml run --rm test-integration
+```
+
+#### Test Statistics and Coverage
+
+**Current Test Statistics**
+
+- **Total Tests**: 173
+  - Unit tests: 163
+  - Integration tests: 10
+- **Success Rate**: 100% ✅
+- **Execution Time**: ~2.8 seconds
+- **Current Coverage**: 67%
+- **Target Coverage**: 90%
+
+**Coverage by Module**
+
+| Module | Coverage | Tests |
+|--------|----------|-------|
+| `main.py` | 84% | 34 |
+| `crypto_utils.py` | 80% | 25 |
+| `docker_manager.py` | 73% | 32 |
+| `security_manager.py` | 67% | 23 |
+| `camera_qr_reader.py` | 52% | 30 |
+| `otp_generator.py` | 37% | 19 |
+
+**Checking Coverage Reports**
+
+```bash
+# Generate and view HTML report
+poetry run pytest tests/ --cov=src --cov-report=html
 open htmlcov/index.html
 
-# Display coverage in terminal
+# Display detailed report in terminal
 poetry run pytest tests/ --cov=src --cov-report=term-missing
 ```
 
-**Current Coverage Details**:
-- `src/main.py`: 84%
-- `src/crypto_utils.py`: 80%
-- `src/docker_manager.py`: 73%
-- `src/security_manager.py`: 67%
-- `src/camera_qr_reader.py`: 52%
-- `src/otp_generator.py`: 37%
+#### How to Write Tests
 
-### 🐛 Test Troubleshooting
+Follow these guidelines when adding new tests:
 
-#### When Tests Hang
+**1. Naming Conventions**
+- File name: `test_<module_name>.py`
+- Class name: `Test<ClassName>`
+- Method name: `test_<functionality>_<scenario>`
 
-```bash
-# Execute with timeout
-timeout 120 poetry run pytest tests/ -v
-
-# Skip specific tests
-poetry run pytest tests/ -k "not test_hanging_test"
-```
-
-#### Camera Access Errors
-
-All camera tests are fully mocked, so no actual camera is required.
-If errors occur, refer to the [Test Design Document Troubleshooting](tests/TEST_DESIGN.md#13-troubleshooting).
-
-#### Docker-related Errors
-
-Docker environment is not required, so tests will pass even if Docker is not running.
-All Docker commands are mocked with `subprocess.run`.
-
-### 📝 Writing Tests
-
-When adding new tests, please follow these guidelines:
-
-1. **Proper Mocking**: Always mock external dependencies
-2. **Clear Test Names**: Use `test_<method>_<scenario>` format
-3. **AAA Pattern**: Arrange, Act, Assert
-4. **Independence**: Each test should be independently executable
-5. **Documentation**: Include test case ID and purpose in docstring
-
-Example:
+**2. AAA Pattern**
 ```python
 def test_add_account_success(self, security_manager):
     """TC-SEC-001: Add account (success)"""
     # Arrange
-    account_data = {...}
+    account_data = {
+        "account_id": "test_001",
+        "account_name": "TestAccount",
+        "issuer": "TestIssuer",
+        "secret": "JBSWY3DPEHPK3PXP"
+    }
     
     # Act
     result = security_manager.add_account(**account_data)
@@ -667,49 +545,124 @@ def test_add_account_success(self, security_manager):
     assert len(result) > 0
 ```
 
-For details, refer to the [Test Design Document](tests/TEST_DESIGN.md).
+**3. Mocking Best Practices**
 
-### Development Commands
+```python
+from unittest.mock import Mock, patch
 
-```bash
-# Code formatting
-poetry run black src/
-
-# Linting
-poetry run flake8 src/
-
-# Type checking
-poetry run mypy src/
-
-# Run tests
-poetry run pytest
+# Mock external dependencies
+@patch('cv2.VideoCapture')
+def test_camera_access(mock_camera):
+    mock_camera.return_value.isOpened.return_value = True
+    # Test code
 ```
 
-### Prerequisites Check (For Developers)
+**4. Test Independence**
+- Each test should run independently
+- Don't share state between tests
+- Initialize with fixtures
 
-```bash
-# Check Python 3.13.9
-python --version
+**5. Documentation**
+- Include test case ID and purpose in docstring
+- Add comments for complex tests
 
-# Check pyenv
-pyenv versions
+**Test Structure**
 
-# Check Docker
-docker --version
-
-# Check virtual environment
-poetry env info
+```
+tests/
+├── conftest.py              # Common fixtures
+├── unit/                    # Unit tests
+│   ├── test_crypto_utils.py      # Encryption (25 tests)
+│   ├── test_otp_generator.py     # OTP generation (19 tests)
+│   ├── test_security_manager.py  # Security (23 tests)
+│   ├── test_camera_qr_reader.py  # Camera QR (30 tests)
+│   ├── test_docker_manager.py    # Docker (32 tests)
+│   └── test_main.py              # Main (34 tests)
+└── integration/             # Integration tests
+    └── test_integration.py       # Integration (10 tests)
 ```
 
-## 🤝 Contributing
+**Test Troubleshooting**
 
-1. Fork this repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add some amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Create a Pull Request
+**Tests Hang**
+```bash
+# Set timeout
+timeout 120 poetry run pytest tests/ -v
+
+# Skip specific tests
+poetry run pytest tests/ -k "not test_problematic"
+```
+
+**Camera Access Errors**
+- All camera tests are fully mocked
+- Actual camera is not required
+- See [TEST_DESIGN.md](docs/TEST_DESIGN.md) for details
+
+**Detailed Test Design**
+
+For complete test design, refer to **[docs/TEST_DESIGN.md](docs/TEST_DESIGN.md)**. It includes:
+- Test strategy and test pyramid
+- Details of all 173 test cases
+- Mocking best practices
+- Troubleshooting guide
+
+### 📚 Developer Documentation
+
+Detailed documentation for development is available in the `docs/` directory:
+
+- **[docs/README.md](docs/README.md)** - Documentation overview and navigation
+- **[docs/REQUIREMENTS_OVERVIEW.md](docs/REQUIREMENTS_OVERVIEW.md)** - Initial project requirements
+- **[docs/REQUIREMENTS_SPECIFICATION.md](docs/REQUIREMENTS_SPECIFICATION.md)** - Detailed functional specifications
+- **[docs/TEST_DESIGN.md](docs/TEST_DESIGN.md)** - Test strategy and 173 test cases
+
+**Recommended Reading Order:**
+
+1. **REQUIREMENTS_OVERVIEW.md** - Understand the project overview
+2. **REQUIREMENTS_SPECIFICATION.md** - Learn detailed specifications
+3. **TEST_DESIGN.md** - Study test strategy
 
 ---
 
-**Note**: This application is created for educational and research purposes. Please conduct thorough testing before production use.
+## 📚 Other
 
+### 🚀 Key Features
+
+- **QR Code Reading**: Read QR codes from PC camera or image files
+- **Multiple Account Management**: Manage and display OTPs for multiple accounts simultaneously
+- **Real-time Display**: Auto-update OTPs every second with progress bar
+- **Secure Storage**: Security codes are encrypted with PBKDF2 and stored locally
+- **Command-line Operation**: Intuitive command-line interface
+- **Docker Integration**: QR code parsing using otpauth container
+- **Account Management**: List, search, update, and delete functionality
+
+### 📋 System Requirements
+
+- **Python**: 3.13 or higher (recommended: 3.13.9)
+- **Poetry**: Dependency management
+- **Docker**: For QR code parsing
+- **macOS**: Camera access permissions
+- **System Library**: zbar (for QR code reading)
+
+#### Main Dependencies
+
+```toml
+[tool.poetry.dependencies]
+python = "^3.13"
+pyotp = "^2.9.0"              # OTP generation
+opencv-python = "^4.8.1"      # QR code reading
+cryptography = "^41.0.7"      # Encryption
+Pillow = "^10.0.1"            # Image processing
+docker = "^6.1.3"             # Docker client
+numpy = "^1.24.0"             # Numerical computation
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^7.0.0"             # Test framework
+pytest-cov = "^4.0.0"         # Coverage
+black = "^23.0.0"             # Formatter
+flake8 = "^6.0.0"             # Linter
+mypy = "^1.0.0"               # Type checker
+```
+
+---
+
+**Development Environment**: macOS Sequoia 24.6.0 | Python 3.13.9 | Poetry 2.2.1

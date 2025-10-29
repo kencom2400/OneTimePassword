@@ -124,8 +124,12 @@ OneTimePassword/
 │   └── docker_manager.py    # Dockerコンテナ管理
 ├── data/
 │   └── accounts.json        # アカウントデータ（暗号化）
+├── docker/
+│   ├── docker-compose.yml   # Docker Compose設定
+│   ├── Dockerfile           # Docker設定（アプリケーション）
+│   ├── Dockerfile.test      # Docker設定（テスト）
+│   └── Dockerfile.lint      # Docker設定（Lint）
 ├── requirements.txt         # Python依存関係
-├── Dockerfile              # Docker設定
 ├── .gitignore              # Git除外設定
 └── README.md               # 使用方法
 ```

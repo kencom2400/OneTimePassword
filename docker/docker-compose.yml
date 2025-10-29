@@ -2,11 +2,11 @@ services:
   # テスト実行サービス
   test:
     build:
-      context: .
-      dockerfile: Dockerfile.test
+      context: ..
+      dockerfile: docker/Dockerfile.test
     volumes:
       # カバレッジレポートをホスト側に出力
-      - .:/app
+      - ..:/app
     environment:
       - PYTHONUNBUFFERED=1
     command: poetry run pytest tests/ -v --cov=src --cov-report=term-missing --cov-report=xml --cov-report=html
@@ -14,11 +14,11 @@ services:
   # ユニットテストのみ
   test-unit:
     build:
-      context: .
-      dockerfile: Dockerfile.test
+      context: ..
+      dockerfile: docker/Dockerfile.test
     volumes:
       # カバレッジレポートをホスト側に出力
-      - .:/app
+      - ..:/app
     environment:
       - PYTHONUNBUFFERED=1
     command: poetry run pytest tests/unit/ -v --cov=src --cov-report=term-missing --cov-report=xml --cov-report=html
@@ -26,8 +26,8 @@ services:
   # 統合テストのみ
   test-integration:
     build:
-      context: .
-      dockerfile: Dockerfile.test
+      context: ..
+      dockerfile: docker/Dockerfile.test
     environment:
       - PYTHONUNBUFFERED=1
     command: poetry run pytest tests/integration/ -v
@@ -35,66 +35,66 @@ services:
   # Lintチェック
   lint:
     build:
-      context: .
-      dockerfile: Dockerfile.lint
+      context: ..
+      dockerfile: docker/Dockerfile.lint
     volumes:
-      - ./src:/app/src
-      - ./tests:/app/tests
-      - ./.flake8:/app/.flake8
+      - ../src:/app/src
+      - ../tests:/app/tests
+      - ../.flake8:/app/.flake8
     environment:
       - PYTHONUNBUFFERED=1
 
   # Blackフォーマット
   black:
     build:
-      context: .
-      dockerfile: Dockerfile.lint
+      context: ..
+      dockerfile: docker/Dockerfile.lint
     volumes:
-      - ./src:/app/src
-      - ./tests:/app/tests
+      - ../src:/app/src
+      - ../tests:/app/tests
     command: poetry run black --check --diff src/ tests/
 
   # Flake8
   flake8:
     build:
-      context: .
-      dockerfile: Dockerfile.lint
+      context: ..
+      dockerfile: docker/Dockerfile.lint
     volumes:
-      - ./src:/app/src
-      - ./tests:/app/tests
-      - ./.flake8:/app/.flake8
+      - ../src:/app/src
+      - ../tests:/app/tests
+      - ../.flake8:/app/.flake8
     command: poetry run flake8 src/ tests/ --count --statistics --show-source
 
   # MyPy
   mypy:
     build:
-      context: .
-      dockerfile: Dockerfile.lint
+      context: ..
+      dockerfile: docker/Dockerfile.lint
     volumes:
-      - ./src:/app/src
-      - ./tests:/app/tests
+      - ../src:/app/src
+      - ../tests:/app/tests
     command: poetry run mypy src/ --ignore-missing-imports --show-error-codes
 
   # Blackフォーマット適用（書き込み権限必要）
   format:
     build:
-      context: .
-      dockerfile: Dockerfile.lint
+      context: ..
+      dockerfile: docker/Dockerfile.lint
     volumes:
       # フォーマット適用のため、ソースコードをマウント
-      - ./src:/app/src
-      - ./tests:/app/tests
+      - ../src:/app/src
+      - ../tests:/app/tests
     command: poetry run black src/ tests/
 
   # アプリケーション実行（開発用）
   app:
     build:
-      context: .
-      dockerfile: Dockerfile
+      context: ..
+      dockerfile: docker/Dockerfile
     volumes:
       # アプリケーション実行時はソースコードとデータをマウント
-      - ./src:/app/src
-      - ./data:/app/data
+      - ../src:/app/src
+      - ../data:/app/data
     environment:
       - PYTHONUNBUFFERED=1
     stdin_open: true

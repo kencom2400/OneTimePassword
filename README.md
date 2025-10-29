@@ -6,149 +6,33 @@ Google Authenticatorと同様の機能を持つワンタイムパスワード（
 
 ## 📑 目次
 
-- [🚀 主な機能](#-主な機能)
-- [📖 使用方法](#-使用方法)
-- [🛠️ セットアップ](#️-セットアップ)
-- [📋 要件](#-要件)
-- [🔒 セキュリティ](#-セキュリティ)
+### 👤 ユーザー向け（アプリを使う）
+- [🚀 クイックスタート](#-クイックスタート)
+- [📖 基本的な使い方](#-基本的な使い方)
+- [📋 コマンドリファレンス](#-コマンドリファレンス)
+- [🔒 セキュリティ設定](#-セキュリティ設定)
 - [🐛 トラブルシューティング](#-トラブルシューティング)
-- [📝 ライセンス](#-ライセンス)
-- [📞 サポート](#-サポート)
-- [🔧 開発者向け情報](#-開発者向け情報)
-- [🧪 テスト](#-テスト) ⭐ **テスト設計書付き**
-- [🤝 貢献](#-貢献)
 
-## 🚀 主な機能
+### 👨‍💻 開発者向け（アプリを開発する）
+- [🛠️ 開発環境セットアップ](#️-開発環境セットアップ)
+- [📂 プロジェクト構成](#-プロジェクト構成)
+- [🔧 開発ツールとコマンド](#-開発ツールとコマンド)
+- [🧪 テスト実行とカバレッジ](#-テスト実行とカバレッジ)
+- [📚 開発者ドキュメント](#-開発者ドキュメント)
 
-- **QRコード読み取り**: PCカメラまたは画像ファイルからQRコードを読み取り
-- **複数アカウント管理**: 複数のアカウントのOTPを同時に管理・表示
-- **リアルタイム表示**: 1秒間隔でOTPを自動更新（プログレスバー付き）
-- **セキュアな保存**: セキュリティコードはPBKDF2で暗号化してローカル保存
-- **コマンドライン操作**: 直感的なコマンドラインインターフェース
-- **Docker連携**: otpauthコンテナを使用したQRコード解析
-- **アカウント管理**: 一覧、検索、更新、削除機能
+### 📚 その他
+- [🚀 主な機能](#-主な機能)
+- [📋 システム要件](#-システム要件)
 
-## 📖 使用方法
+---
 
-### 🚀 ラッパーシェルでの実行（推奨・最も簡単）
+## 👤 ユーザー向け（アプリを使う）
 
-**Poetry環境を意識せずに実行できます！** ラッパーシェルが自動的にPoetry環境をセットアップします。
+このセクションは、OneTimePasswordアプリケーションを**使用したい方**向けです。
 
-```bash
-# 初回実行時は自動的にPoetry installを実行します
-./otp [コマンド]
+### 🚀 クイックスタート
 
-# 2回目以降はすぐに実行されます
-./otp show --all
-./otp list
-./otp add --camera
-```
-
-**特徴:**
-- ✅ Clone後すぐに使える（Poetry installを忘れる心配なし）
-- ✅ `poetry run`コマンドが不要
-- ✅ シンプルで直感的な実行方法
-- ✅ 初回実行時に自動で依存関係をインストール
-
-### 🐳 Docker環境での実行
-
-Dockerを使用することで、環境構築不要ですぐに使用できます。
-
-```bash
-# テストの実行
-docker-compose run --rm test
-
-# ユニットテストのみ実行
-docker-compose run --rm test-unit
-
-# 統合テストのみ実行
-docker-compose run --rm test-integration
-
-# Lintチェック（Black, Flake8, MyPy）
-docker-compose run --rm black
-docker-compose run --rm flake8
-docker-compose run --rm mypy
-
-# アプリケーションの実行
-docker-compose run --rm app poetry run python src/main.py [コマンド]
-```
-
-### Poetry環境での実行（従来の方法）
-
-```bash
-# Poetry仮想環境内で実行
-poetry run python src/main.py [コマンド]
-
-# または仮想環境をアクティベートしてから実行
-poetry shell
-python src/main.py [コマンド]
-```
-
-### コマンド一覧
-
-#### アカウントの追加
-
-```bash
-# ラッパーシェルで実行（推奨）
-./otp add --camera                    # カメラでQRコード読み取り
-./otp add --image qr_code.png         # 画像ファイルからQRコード読み取り
-
-# または従来の方法
-poetry run python src/main.py add --camera
-poetry run python src/main.py add --image qr_code.png
-```
-
-#### OTPの表示
-
-```bash
-# ラッパーシェルで実行（推奨）
-./otp show --all                      # 全アカウントのOTP表示（リアルタイム更新）
-./otp show <account_id>               # 特定アカウントのOTP表示
-
-# または従来の方法
-poetry run python src/main.py show --all
-poetry run python src/main.py show <account_id>
-```
-
-**実行例（全アカウント表示）:**
-
-![OTP表示の実行例](images/command_show_all.png)
-
-#### アカウント管理
-
-```bash
-# ラッパーシェルで実行（推奨）
-./otp list                            # アカウント一覧表示
-./otp delete <account_id>             # アカウント削除
-./otp update <account_id> --name "新しい名前"  # アカウント情報更新
-./otp search "キーワード"             # アカウント検索
-
-# または従来の方法
-poetry run python src/main.py list
-poetry run python src/main.py delete <account_id>
-poetry run python src/main.py update <account_id> --name "新しい名前"
-poetry run python src/main.py search "キーワード"
-```
-
-#### システム管理
-
-```bash
-# ラッパーシェルで実行（推奨）
-./otp status                          # アプリケーション状態表示
-./otp setup                           # Docker環境のセットアップ
-./otp cleanup                         # Dockerイメージの削除
-
-# または従来の方法
-poetry run python src/main.py status
-poetry run python src/main.py setup
-poetry run python src/main.py cleanup
-```
-
-## 🛠️ セットアップ
-
-### 🚀 クイックスタート（ラッパーシェル使用の場合）
-
-**最もシンプルな方法！** 以下の手順だけで使い始められます：
+**最もシンプルな始め方：** ラッパーシェルを使用
 
 ```bash
 # 1. リポジトリをクローン
@@ -159,202 +43,201 @@ cd OneTimePassword
 curl -sSL https://install.python-poetry.org | python3 -
 export PATH="$HOME/.local/bin:$PATH"
 
-# 3. すぐに実行！（初回実行時に自動で依存関係をインストール）
+# 3. すぐに実行！（初回は自動で依存関係をインストール）
 ./otp --help
+
+# 4. マスターパスワードを設定（初回のみ）
+echo "your_strong_password" > ~/.otp_password
+chmod 600 ~/.otp_password
 
 # 完了！これだけです 🎉
 ```
 
-### 1. Poetry環境のセットアップ（従来の方法）
+**次のステップ：**
+- [基本的な使い方](#-基本的な使い方) - アカウント追加とOTP表示
+- [セキュリティ設定](#-セキュリティ設定) - マスターパスワードの詳細設定
 
-ラッパーシェルを使わず、手動でセットアップする場合：
+### 📖 基本的な使い方
+
+#### 1. アカウントを追加する
 
 ```bash
-# Poetryがインストールされていない場合
-curl -sSL https://install.python-poetry.org | python3 -
+# カメラでQRコードを読み取って追加
+./otp add --camera
 
-# PATH設定（~/.zshrcに追加）
-echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.zshrc
-source ~/.zshrc
-
-# プロジェクトディレクトリに移動
-cd /path/to/OneTimePassword
-
-# 依存関係のインストール
-poetry install
+# または画像ファイルから追加
+./otp add --image qr_code.png
 ```
 
-### 2. システム依存関係のインストール（macOS）
+#### 2. OTPを表示する
 
 ```bash
-# zbarライブラリ（QRコード読み取り用）
-brew install zbar
+# 全アカウントのOTPを表示（リアルタイム更新）
+./otp show --all
+
+# 特定のアカウントのみ表示
+./otp show <account_id>
 ```
 
-### 3. Docker環境のセットアップ
+#### 3. アカウントを管理する
 
 ```bash
-# Docker環境のセットアップ（otpauthリポジトリのクローンとイメージビルド）
-poetry run python src/main.py setup
+# アカウント一覧を表示
+./otp list
 
-# セットアップ完了の確認
-docker images | grep otpauth
-# 出力例: otpauth      latest    eeb083890349   9 minutes ago   21.1MB
+# アカウントを検索
+./otp search "GitHub"
+
+# アカウント情報を更新
+./otp update <account_id> --name "新しい名前"
+
+# アカウントを削除
+./otp delete <account_id>
 ```
 
-**注意**: QRコードの読み取り機能は、イメージが存在しない場合に自動的にビルドを試行します。初回使用時は時間がかかる場合があります。
-
-### 4. 環境テスト
+#### 4. システム状態を確認する
 
 ```bash
-# ラッパーシェルで実行（推奨）
-./otp --help                          # アプリケーションの動作確認
-./otp status                          # ステータス確認
+# アプリケーションの状態を確認
+./otp status
 
-# または従来の方法
-poetry run python src/main.py --help
-poetry run python src/main.py status
+# Docker環境をセットアップ（初回のみ）
+./otp setup
+
+# Dockerイメージをクリーンアップ
+./otp cleanup
 ```
 
-## 📋 要件
+### 📋 コマンドリファレンス
 
-- **Python**: 3.8.1以上（推奨: 3.13.9）
-- **Poetry**: 依存関係管理
-- **Docker**: QRコード解析用
-- **macOS**: カメラアクセス権限
-- **システムライブラリ**: zbar（QRコード読み取り用）
+#### 実行方法の選択
 
-## 🔒 セキュリティ
+このアプリケーションには3つの実行方法があります：
 
-- **暗号化**: セキュリティコードはPBKDF2で暗号化して保存
-- **ランダムソルト**: 各暗号化ごとに16バイトのランダムなソルトを生成（レインボーテーブル攻撃対策）
-- **ローカル保存**: 機密データはGitHubにコミットされません
-- **メモリクリア**: 使用後の機密データは即座にクリア
-- **権限管理**: 適切なファイル権限設定
-- **カメラアクセス**: 最小限の権限でカメラにアクセス
-- **環境変数**: マスターパスワードは環境変数で安全に管理
+| 方法 | コマンド例 | 推奨度 | 用途 |
+|------|-----------|--------|------|
+| **ラッパーシェル** | `./otp show --all` | ⭐⭐⭐ | 日常使用（最も簡単） |
+| **Poetry直接** | `poetry run python src/main.py show --all` | ⭐⭐ | 開発・デバッグ時 |
+| **Docker** | `docker-compose -f docker/docker-compose.yml run --rm app ...` | ⭐ | テスト実行 |
 
-### 🔐 暗号化の仕組み
+以降のコマンド例は、**ラッパーシェル形式**で記載します。他の方法で実行する場合は、上記の表を参考に読み替えてください。
 
-本アプリケーションは業界標準のセキュリティプラクティスを採用しています：
+#### コマンド一覧
 
-1. **各暗号化ごとに一意のソルト**: 同じデータを暗号化しても、毎回異なる結果が生成されます
-2. **PBKDF2キー導出**: 100,000回の反復でマスターパスワードから暗号化キーを導出
-3. **Fernet暗号化**: AES-128-CBCとHMAC-SHA256による認証付き暗号化
-4. **ソルトの保存**: 16バイトのランダムソルトを暗号化データと一緒に保存
-
-### 🔐 マスターパスワードの設定（重要）
-
-アプリケーションはセキュリティコードを暗号化するためにマスターパスワードを使用します。
-以下のいずれかの方法でマスターパスワードを設定してください：
-
-#### 方法1: 環境変数で設定（推奨）
+**アカウント管理**
 
 ```bash
-# ~/.zshrc または ~/.bashrc に追加
-export OTP_MASTER_PASSWORD="your_strong_password_here"
-
-# 設定を反映
-source ~/.zshrc
+./otp add --camera              # カメラでQRコード読み取り
+./otp add --image <path>        # 画像ファイルから読み取り
+./otp list                      # アカウント一覧
+./otp show --all                # 全OTP表示（リアルタイム更新）
+./otp show <account_id>         # 特定アカウントのOTP表示
+./otp search <keyword>          # アカウント検索
+./otp update <account_id> --name <name> # アカウント更新
+./otp delete <account_id>       # アカウント削除
 ```
 
-#### 方法2: パスワードファイルで設定（より安全・推奨）
-
-**デフォルトファイル `~/.otp_password` を使用（環境変数不要）:**
+**システム管理**
 
 ```bash
-# パスワードファイルを作成（権限を制限）
-echo "your_strong_password_here" > ~/.otp_password
+./otp status                    # ステータス表示
+./otp setup                     # Docker環境セットアップ
+./otp cleanup                   # Dockerイメージ削除
+./otp --help                    # ヘルプ表示
+```
+
+### 🔒 セキュリティ設定
+
+#### マスターパスワードについて
+
+このアプリケーションは、セキュリティコードを暗号化して保存するためにマスターパスワードを使用します。
+
+**暗号化の仕組み：**
+- PBKDF2キー導出（100,000回の反復）
+- Fernet暗号化（AES-128-CBC + HMAC-SHA256）
+- 各暗号化ごとに一意の16バイトランダムソルト
+- ローカルストレージのみ（GitHubにコミットされません）
+
+#### マスターパスワードの設定方法
+
+**方法1: パスワードファイル（推奨・最も簡単）**
+
+```bash
+# デフォルトファイルに保存（環境変数不要）
+echo "your_strong_password" > ~/.otp_password
 chmod 600 ~/.otp_password
 
-# これだけで完了！環境変数の設定は不要です
-poetry run python src/main.py show --all
+# これだけで完了！
+./otp show --all
 ```
 
-**カスタムパスワードファイルを使用する場合:**
+**方法2: カスタムパスワードファイル**
 
 ```bash
-# 任意の場所にパスワードファイルを作成
-echo "your_strong_password_here" > /path/to/custom_password
-chmod 600 /path/to/custom_password
+# 任意の場所に保存
+echo "your_strong_password" > /path/to/password
+chmod 600 /path/to/password
 
-# ~/.zshrc または ~/.bashrc に追加
-export OTP_PASSWORD_FILE="/path/to/custom_password"
-
-# 設定を反映
+# 環境変数で場所を指定（~/.zshrcに追加）
+echo 'export OTP_PASSWORD_FILE="/path/to/password"' >> ~/.zshrc
 source ~/.zshrc
 ```
 
-#### 方法3: インタラクティブ入力
+**方法3: 環境変数**
 
-環境変数もパスワードファイルも設定していない場合、アプリケーション起動時にパスワードの入力を求められます。
+```bash
+# ~/.zshrcに追加
+echo 'export OTP_MASTER_PASSWORD="your_strong_password"' >> ~/.zshrc
+source ~/.zshrc
+```
 
-**⚠️ セキュリティ警告**:
-- マスターパスワードは推測しにくい強力なものを使用してください
-- パスワードファイルを使用する場合は、必ず適切なファイル権限（600）を設定してください
-- 環境変数やパスワードファイルをバージョン管理システムにコミットしないでください
-- パスワードを変更すると、既存のデータが復号化できなくなる可能性があります
+**方法4: インタラクティブ入力**
 
-## 🐛 トラブルシューティング
+上記の設定をしていない場合、実行時にパスワードの入力を求められます。
 
-### カメラが認識されない場合
+**⚠️ セキュリティ警告：**
+- 推測しにくい強力なパスワードを使用してください
+- パスワードファイルは必ず権限600に設定してください
+- パスワードをバージョン管理システムにコミットしないでください
+- パスワードを変更すると既存データが復号化できなくなります
+
+### 🐛 トラブルシューティング
+
+#### カメラが認識されない
 
 ```bash
 # カメラの接続確認
 poetry run python -c "import cv2; print(cv2.VideoCapture(0).isOpened())"
 
-# カメラ権限の確認（macOS）
+# macOSの場合：システム環境設定でカメラ権限を確認
 # システム環境設定 > セキュリティとプライバシー > プライバシー > カメラ
 ```
 
-### Dockerエラーの場合
+#### Dockerエラー
 
 ```bash
 # Dockerの状態確認
 docker --version
-docker info
-
-# Dockerデーモンの起動確認
 docker ps
 
-# ネットワーク接続確認
-ping github.com
-
-# otpauthイメージが存在しない場合（自動ビルドされる）
-poetry run python src/main.py add --camera
-
-# 手動でセットアップする場合
-poetry run python src/main.py setup
-
-# イメージの確認
+# otpauthイメージの確認
 docker images | grep otpauth
 
-# イメージを削除する場合
-poetry run python src/main.py cleanup
+# イメージが無い場合は自動ビルドされます
+./otp add --camera
+
+# 手動でセットアップ
+./otp setup
 ```
 
-### QRコードが読み取れない場合
+#### QRコードが読み取れない
 
 - QRコードが鮮明で十分なサイズか確認
 - カメラの焦点を調整
 - 照明条件を改善
-- QRコードの形式確認（`otpauth-migration://offline?data=...`）
+- QRコードの形式を確認（`otpauth-migration://offline?data=...`）
 
-### QRコード解析エラーの場合
-
-```bash
-# 解析エラーのデバッグ
-poetry run python -c "
-from src.docker_manager import DockerManager
-dm = DockerManager()
-# テスト用の出力で解析を確認
-test_output = 'otpauth://totp/account?algorithm=SHA1&digits=6&issuer=GitHub&period=30&secret=SECRET'
-result = dm.parse_otpauth_output(test_output)
-print('解析結果:', result)
-"
-```
-
-### Poetry環境の問題
+#### Poetry環境の問題
 
 ```bash
 # 仮想環境の再作成
@@ -363,156 +246,190 @@ poetry install
 
 # 依存関係の更新
 poetry update
-
-# ロックファイルの再生成
-poetry lock
 ```
-
-## 📝 ライセンス
-
-このプロジェクトはMITライセンスの下で公開されています。詳細は[LICENSE](LICENSE)ファイルを参照してください。
-
-## 📞 サポート
-
-問題が発生した場合は、以下の手順でサポートを受けてください：
-
-1. [トラブルシューティング](#-トラブルシューティング)セクションを確認
-2. 既存のIssueを検索
-3. 新しいIssueを作成（詳細な情報を含める）
 
 ---
 
-## 🔧 開発者向け情報
+## 👨‍💻 開発者向け（アプリを開発する）
 
-### プロジェクト構成
+このセクションは、OneTimePasswordアプリケーションの**開発に参加したい方**向けです。
+
+### 🛠️ 開発環境セットアップ
+
+#### 必要なツール
+
+- **Python 3.13以上**（推奨: 3.13.9）
+- **Poetry**（依存関係管理）
+- **Docker**（QRコード解析、テスト実行）
+- **Git**（バージョン管理）
+- **zbar**（QRコード読み取りライブラリ）
+
+#### セットアップ手順
+
+```bash
+# 1. リポジトリをクローン
+git clone https://github.com/your-username/OneTimePassword.git
+cd OneTimePassword
+
+# 2. Poetryをインストール
+curl -sSL https://install.python-poetry.org | python3 -
+export PATH="$HOME/.local/bin:$PATH"
+
+# 3. 依存関係をインストール
+poetry install
+
+# 4. システムライブラリをインストール（macOS）
+brew install zbar
+
+# 5. Docker環境をセットアップ
+poetry run python src/main.py setup
+
+# 6. 動作確認
+poetry run python src/main.py --help
+```
+
+#### 開発環境の確認
+
+```bash
+# Python バージョン確認
+python --version  # 3.13以上
+
+# Poetry 確認
+poetry --version
+
+# 仮想環境の確認
+poetry env info
+
+# Docker 確認
+docker --version
+docker ps
+```
+
+### 📂 プロジェクト構成
 
 ```
 OneTimePassword/
-├── otp                           # 🚀 実行ラッパーシェル（推奨）
-├── run_tests.sh                  # テスト実行ラッパーシェル
-├── src/                          # ソースコード
-│   ├── __init__.py              # パッケージ初期化
-│   ├── main.py                  # メインアプリケーション（CLI）
-│   ├── camera_qr_reader.py      # カメラQRコード読み取り
-│   ├── otp_generator.py         # OTP生成・表示
-│   ├── security_manager.py      # セキュリティコード管理
-│   ├── crypto_utils.py          # 暗号化ユーティリティ
-│   └── docker_manager.py        # Dockerコンテナ管理
-├── tests/                        # テストコード
-│   ├── TEST_DESIGN.md           # テスト設計書
-│   ├── conftest.py              # pytest共通フィクスチャ
-│   ├── unit/                    # 単体テスト（163個）
-│   │   ├── test_crypto_utils.py
-│   │   ├── test_otp_generator.py
-│   │   ├── test_security_manager.py
-│   │   ├── test_camera_qr_reader.py
-│   │   ├── test_docker_manager.py
-│   │   └── test_main.py
-│   ├── integration/             # 統合テスト（10個）
-│   │   └── test_integration.py
-│   └── run_tests.py             # Pythonテスト実行スクリプト
-├── data/                         # データディレクトリ
-│   └── accounts.json            # アカウントデータ（暗号化）
-├── htmlcov/                      # カバレッジHTMLレポート（自動生成）
-├── pyproject.toml               # Poetry設定ファイル
-├── poetry.lock                  # Poetry依存関係ロックファイル
-├── requirements.txt             # 従来の依存関係（参考用）
-├── .gitignore                   # Git除外設定
-├── LICENSE                      # ライセンスファイル
-├── README.md                    # このファイル
-├── README.en.md                 # 英語版README
-├── REQUIREMENTS_OVERVIEW.md     # プロジェクト要件概要
-└── requirements_specification.md # 要件定義書
+├── 🚀 実行ファイル
+│   ├── otp                       # ラッパーシェル（ユーザー用）
+│   └── run_tests.sh              # テスト実行スクリプト
+│
+├── 📁 ソースコード
+│   └── src/
+│       ├── main.py               # メインアプリケーション（CLI）
+│       ├── camera_qr_reader.py   # カメラQRコード読み取り
+│       ├── otp_generator.py      # OTP生成・表示
+│       ├── security_manager.py   # アカウント管理・暗号化
+│       ├── crypto_utils.py       # 暗号化ユーティリティ
+│       └── docker_manager.py     # Dockerコンテナ管理
+│
+├── 🧪 テストコード
+│   └── tests/
+│       ├── unit/                 # 単体テスト（163個）
+│       ├── integration/          # 統合テスト（10個）
+│       └── conftest.py           # pytest設定
+│
+├── 📚 ドキュメント
+│   ├── README.md                 # このファイル（ユーザー向け）
+│   ├── README.en.md              # 英語版
+│   └── docs/
+│       ├── README.md             # 開発者ドキュメント概要
+│       ├── REQUIREMENTS_OVERVIEW.md
+│       ├── REQUIREMENTS_SPECIFICATION.md
+│       └── TEST_DESIGN.md        # テスト設計書
+│
+├── 🐳 Docker関連
+│   └── docker/
+│       ├── docker-compose.yml    # Docker Compose設定
+│       ├── Dockerfile            # アプリケーション用
+│       ├── Dockerfile.test       # テスト用
+│       └── Dockerfile.lint       # Lint用
+│
+└── ⚙️ 設定ファイル
+    ├── pyproject.toml            # Poetry設定
+    ├── poetry.lock               # 依存関係ロック
+    └── .gitignore                # Git除外設定
 ```
 
-### 技術仕様
+### 🔧 開発ツールとコマンド
 
-#### 使用技術
-
-- **言語**: Python 3.8.1+
-- **依存関係管理**: Poetry
-- **仮想環境**: pyenv + Poetry
-- **暗号化**: cryptography（PBKDF2）
-- **QRコード**: OpenCV（cv2.QRCodeDetector）
-- **OTP生成**: pyotp
-- **コンテナ**: Docker
-- **画像処理**: Pillow
-
-#### 依存関係
-
-```toml
-[tool.poetry.dependencies]
-python = "^3.8.1"
-pyotp = "^2.9.0"
-opencv-python = "^4.8.1"
-cryptography = "^41.0.7"
-Pillow = "^10.0.1"
-docker = "^6.1.3"
-numpy = "^1.24.0"
-
-[tool.poetry.group.dev.dependencies]
-pytest = "^7.0.0"
-pytest-cov = "^4.0.0"
-pytest-mock = "^3.0.0"
-pytest-asyncio = "^0.21.0"
-black = "^23.0.0"
-flake8 = "^6.0.0"
-mypy = "^1.0.0"
-```
-
-### 開発環境情報
-
-- **Python**: 3.13.9（pyenv管理）
-- **Poetry**: 2.2.1
-- **仮想環境**: `/Users/kencom/Library/Caches/pypoetry/virtualenvs/onetimepassword-78G70__u-py3.13`
-- **OS**: macOS Sequoia 24.6.0
-
-## 🧪 テスト
-
-### 📚 テスト設計書
-
-詳細なテスト設計については、[テスト設計書（TEST_DESIGN.md）](tests/TEST_DESIGN.md)を参照してください。
-
-テスト設計書には以下の情報が含まれています：
-- テスト戦略とテストピラミッド
-- モジュール別テスト設計（173個のテストケース）
-- 統合テスト・E2Eテスト設計
-- モック化のベストプラクティス
-- トラブルシューティングガイド
-- テスト実行方法の詳細
-
-### 📊 テスト統計
-
-- **総テスト数**: 173個
-  - 単体テスト: 163個
-  - 統合テスト: 10個
-- **テスト成功率**: 100% ✅
-- **実行時間**: 約2.8秒
-- **現在のカバレッジ**: 67%
-- **目標カバレッジ**: 90%以上
-
-### 🚀 テスト実行方法
-
-#### 1. ラッパーシェルスクリプト（推奨）
+#### コード品質チェック
 
 ```bash
-# 全テスト実行（推奨）
+# コードフォーマット（Black）
+poetry run black src/ tests/
+
+# フォーマットチェック（変更なし）
+poetry run black --check --diff src/ tests/
+
+# Lintチェック（Flake8）
+poetry run flake8 src/ tests/ --count --statistics
+
+# 型チェック（MyPy）
+poetry run mypy src/ --ignore-missing-imports --show-error-codes
+```
+
+#### 一括実行（Docker使用）
+
+```bash
+# 全Lintチェック
+docker-compose -f docker/docker-compose.yml run --rm black
+docker-compose -f docker/docker-compose.yml run --rm flake8
+docker-compose -f docker/docker-compose.yml run --rm mypy
+
+# フォーマット適用
+docker-compose -f docker/docker-compose.yml run --rm format
+```
+
+#### デバッグ実行
+
+```bash
+# Pythonデバッガー付き実行
+poetry run python -m pdb src/main.py [コマンド]
+
+# 詳細ログ出力
+poetry run python src/main.py --verbose [コマンド]
+
+# 環境情報の表示
+poetry run python src/main.py status
+```
+
+#### 依存関係の管理
+
+```bash
+# 依存関係の追加
+poetry add <package>
+
+# 開発用依存関係の追加
+poetry add --group dev <package>
+
+# 依存関係の更新
+poetry update
+
+# 依存関係の確認
+poetry show --tree
+```
+
+### 🧪 テスト実行とカバレッジ
+
+#### テスト実行方法
+
+**クイック実行（推奨）**
+
+```bash
+# 全テスト実行（最も簡単）
 ./run_tests.sh
 
-# 単体テストのみ実行
-./run_tests.sh unit
-
-# 統合テストのみ実行
-./run_tests.sh integration
-
-# カバレッジ付きテスト実行（HTML・XMLレポート生成）
+# カバレッジ付き実行
 ./run_tests.sh coverage --html
 
-# クイックテスト実行（カバレッジなし）
-./run_tests.sh quick
+# 単体テストのみ
+./run_tests.sh unit
 
-# 監視モード（ファイル変更時に自動実行）
-./run_tests.sh watch
+# 統合テストのみ
+./run_tests.sh integration
+
+# クイック実行（カバレッジなし）
+./run_tests.sh quick
 
 # テストキャッシュクリア
 ./run_tests.sh clean
@@ -521,194 +438,231 @@ mypy = "^1.0.0"
 ./run_tests.sh --help
 ```
 
-#### 2. 直接実行
+**詳細な実行オプション**
 
 ```bash
 # 全テスト実行
 poetry run pytest tests/ -v
 
-# カバレッジ付きテスト実行
+# カバレッジ付き実行
 poetry run pytest tests/ --cov=src --cov-report=html --cov-report=term
 
-# 特定のモジュールのテスト実行
+# 特定のモジュールのテスト
 poetry run pytest tests/unit/test_crypto_utils.py -v
 
-# 特定のテストクラス実行
+# 特定のテストクラス
 poetry run pytest tests/unit/test_main.py::TestOneTimePasswordApp -v
 
-# 特定のテスト関数実行
-poetry run pytest tests/unit/test_main.py::TestOneTimePasswordApp::test_add_account_from_camera_success -v
+# 特定のテスト関数
+poetry run pytest tests/unit/test_main.py::test_add_account_success -v
 
 # 並列実行（高速化）
 poetry run pytest tests/ -n auto
 
-# タイムアウト付き実行（ハングするテスト対策）
-timeout 120 poetry run pytest tests/ -v
-```
-
-### 🗂️ テスト構造
-
-```
-tests/
-├── TEST_DESIGN.md           # テスト設計書（詳細なドキュメント）
-├── conftest.py              # pytest共通フィクスチャ
-├── unit/                    # 単体テスト（163個）
-│   ├── test_crypto_utils.py      # 暗号化ユーティリティ（25個）
-│   ├── test_otp_generator.py     # OTP生成（19個）
-│   ├── test_security_manager.py  # セキュリティ管理（23個）
-│   ├── test_camera_qr_reader.py  # カメラQR読み取り（30個）
-│   ├── test_docker_manager.py    # Docker管理（32個）
-│   └── test_main.py              # メインアプリ（34個）
-├── integration/             # 統合テスト（10個）
-│   └── test_integration.py
-├── run_tests.py             # Pythonテスト実行スクリプト
-└── run_tests.sh             # Bashラッパースクリプト
-```
-
-### 📋 テスト実行オプション
-
-#### ラッパーシェルオプション
-
-- `-v, --verbose`: 詳細出力（テストケース名と結果を表示）
-- `-q, --quiet`: 簡潔出力（サマリーのみ表示）
-- `-f, --fail-fast`: 最初の失敗で停止
-- `-p, --parallel`: 並列実行（高速化）
-- `--no-cov`: カバレッジ測定を無効化（高速実行）
-- `--html`: HTMLカバレッジレポート生成（`htmlcov/index.html`）
-- `--xml`: XMLカバレッジレポート生成（`coverage.xml`）
-- `-m MARKER`: 特定のマーカーのテストのみ実行
-
-#### pytestオプション例
-
-```bash
 # 失敗したテストのみ再実行
 poetry run pytest tests/ --lf
 
-# 失敗したテストを最初に実行
-poetry run pytest tests/ --ff
-
-# トレースバックを短く表示
-poetry run pytest tests/ --tb=short
-
-# トレースバックを表示しない
-poetry run pytest tests/ --tb=no
-
-# 詳細な出力（各テストの詳細）
+# 詳細出力
 poetry run pytest tests/ -vv
 
-# テストの実行時間を表示
+# テスト実行時間の表示
 poetry run pytest tests/ --durations=10
 ```
 
-### 🔍 カバレッジレポート
-
-テスト実行後、以下のカバレッジレポートが生成されます：
+**Docker環境でのテスト実行**
 
 ```bash
-# HTMLレポートの確認
+# 全テスト
+docker-compose -f docker/docker-compose.yml run --rm test
+
+# 単体テストのみ
+docker-compose -f docker/docker-compose.yml run --rm test-unit
+
+# 統合テストのみ
+docker-compose -f docker/docker-compose.yml run --rm test-integration
+```
+
+#### テスト統計とカバレッジ
+
+**現在のテスト統計**
+
+- **総テスト数**: 173個
+  - 単体テスト: 163個
+  - 統合テスト: 10個
+- **テスト成功率**: 100% ✅
+- **実行時間**: 約2.8秒
+- **現在のカバレッジ**: 67%
+- **目標カバレッジ**: 90%
+
+**モジュール別カバレッジ**
+
+| モジュール | カバレッジ | テスト数 |
+|-----------|----------|----------|
+| `main.py` | 84% | 34個 |
+| `crypto_utils.py` | 80% | 25個 |
+| `docker_manager.py` | 73% | 32個 |
+| `security_manager.py` | 67% | 23個 |
+| `camera_qr_reader.py` | 52% | 30個 |
+| `otp_generator.py` | 37% | 19個 |
+
+**カバレッジレポートの確認**
+
+```bash
+# HTMLレポートを生成して表示
+poetry run pytest tests/ --cov=src --cov-report=html
 open htmlcov/index.html
 
-# ターミナルでのカバレッジ表示
+# ターミナルで詳細表示
 poetry run pytest tests/ --cov=src --cov-report=term-missing
 ```
 
-**現在のカバレッジ詳細**:
-- `src/main.py`: 84%
-- `src/crypto_utils.py`: 80%
-- `src/docker_manager.py`: 73%
-- `src/security_manager.py`: 67%
-- `src/camera_qr_reader.py`: 52%
-- `src/otp_generator.py`: 37%
-
-### 🐛 テストのトラブルシューティング
-
-#### テストがハングする場合
-
-```bash
-# タイムアウトを設定して実行
-timeout 120 poetry run pytest tests/ -v
-
-# 特定のテストをスキップ
-poetry run pytest tests/ -k "not test_hanging_test"
-```
-
-#### カメラアクセスエラー
-
-全てのカメラテストは完全にモック化されているため、実際のカメラは不要です。
-エラーが発生する場合は、[テスト設計書のトラブルシューティング](tests/TEST_DESIGN.md#13-トラブルシューティング)を参照してください。
-
-#### Docker関連エラー
-
-Docker環境が不要なため、Dockerが起動していなくてもテストは成功します。
-全てのDockerコマンドは`subprocess.run`でモック化されています。
-
-### 📝 テストの書き方
+#### テストの書き方
 
 新しいテストを追加する際は、以下のガイドラインに従ってください：
 
-1. **適切なモック化**: 外部依存は必ずモック化
-2. **明確なテスト名**: `test_<method>_<scenario>`の形式
-3. **AAA パターン**: Arrange（準備）、Act（実行）、Assert（検証）
-4. **独立性**: 各テストは独立して実行可能に
-5. **ドキュメント**: docstringでテストケースIDと目的を記載
+**1. 命名規則**
+- ファイル名: `test_<module_name>.py`
+- クラス名: `Test<ClassName>`
+- メソッド名: `test_<functionality>_<scenario>`
 
-例：
+**2. AAAパターン**
 ```python
 def test_add_account_success(self, security_manager):
     """TC-SEC-001: アカウントの追加（成功）"""
-    # Arrange
-    account_data = {...}
+    # Arrange（準備）
+    account_data = {
+        "account_id": "test_001",
+        "account_name": "TestAccount",
+        "issuer": "TestIssuer",
+        "secret": "JBSWY3DPEHPK3PXP"
+    }
     
-    # Act
+    # Act（実行）
     result = security_manager.add_account(**account_data)
     
-    # Assert
+    # Assert（検証）
     assert result is not None
     assert len(result) > 0
 ```
 
-詳細は[テスト設計書](tests/TEST_DESIGN.md)を参照してください。
+**3. モック化のベストプラクティス**
 
-### 開発コマンド
+```python
+from unittest.mock import Mock, patch
 
-```bash
-# コードフォーマット
-poetry run black src/
-
-# リント
-poetry run flake8 src/
-
-# 型チェック
-poetry run mypy src/
-
-# テスト実行
-poetry run pytest
+# 外部依存のモック化
+@patch('cv2.VideoCapture')
+def test_camera_access(mock_camera):
+    mock_camera.return_value.isOpened.return_value = True
+    # テストコード
 ```
 
-### 前提条件の確認（開発者向け）
+**4. テストの独立性**
+- 各テストは独立して実行可能にする
+- テスト間で状態を共有しない
+- フィクスチャで初期化する
 
-```bash
-# Python 3.13.9の確認
-python --version
+**5. ドキュメント**
+- docstringでテストケースIDと目的を記載
+- 複雑なテストにはコメントを追加
 
-# pyenvの確認
-pyenv versions
+**テスト構造**
 
-# Dockerの確認
-docker --version
-
-# 仮想環境の確認
-poetry env info
+```
+tests/
+├── conftest.py              # 共通フィクスチャ
+├── unit/                    # 単体テスト
+│   ├── test_crypto_utils.py      # 暗号化（25個）
+│   ├── test_otp_generator.py     # OTP生成（19個）
+│   ├── test_security_manager.py  # セキュリティ（23個）
+│   ├── test_camera_qr_reader.py  # カメラQR（30個）
+│   ├── test_docker_manager.py    # Docker（32個）
+│   └── test_main.py              # メイン（34個）
+└── integration/             # 統合テスト
+    └── test_integration.py       # 統合（10個）
 ```
 
-## 🤝 貢献
+**テスト実行時のトラブルシューティング**
 
-1. このリポジトリをフォーク
-2. フィーチャーブランチを作成 (`git checkout -b feature/amazing-feature`)
-3. 変更をコミット (`git commit -m 'Add some amazing feature'`)
-4. ブランチにプッシュ (`git push origin feature/amazing-feature`)
-5. プルリクエストを作成
+**テストがハングする場合**
+```bash
+# タイムアウトを設定
+timeout 120 poetry run pytest tests/ -v
+
+# 特定のテストをスキップ
+poetry run pytest tests/ -k "not test_problematic"
+```
+
+**カメラアクセスエラー**
+- すべてのカメラテストは完全にモック化されています
+- 実際のカメラは不要です
+- 詳細は[TEST_DESIGN.md](docs/TEST_DESIGN.md)参照
+
+**詳細なテスト設計**
+
+完全なテスト設計については、**[docs/TEST_DESIGN.md](docs/TEST_DESIGN.md)**を参照してください。以下の情報が含まれています：
+- テスト戦略とテストピラミッド
+- 173個すべてのテストケースの詳細
+- モック化のベストプラクティス
+- トラブルシューティングガイド
+
+### 📚 開発者ドキュメント
+
+開発に必要な詳細ドキュメントは`docs/`ディレクトリにあります：
+
+- **[docs/README.md](docs/README.md)** - ドキュメント概要とナビゲーション
+- **[docs/REQUIREMENTS_OVERVIEW.md](docs/REQUIREMENTS_OVERVIEW.md)** - プロジェクトの初期要件
+- **[docs/REQUIREMENTS_SPECIFICATION.md](docs/REQUIREMENTS_SPECIFICATION.md)** - 詳細な機能仕様
+- **[docs/TEST_DESIGN.md](docs/TEST_DESIGN.md)** - テスト戦略と173個のテストケース
+
+**推奨読書順序：**
+
+1. **REQUIREMENTS_OVERVIEW.md** - プロジェクトの全体像を把握
+2. **REQUIREMENTS_SPECIFICATION.md** - 詳細な仕様を理解
+3. **TEST_DESIGN.md** - テスト方針を学習
 
 ---
 
-**注意**: このアプリケーションは教育・研究目的で作成されています。本番環境での使用前に十分なテストを行ってください。
+## 📚 その他
+
+### 🚀 主な機能
+
+- **QRコード読み取り**: PCカメラまたは画像ファイルからQRコードを読み取り
+- **複数アカウント管理**: 複数のアカウントのOTPを同時に管理・表示
+- **リアルタイム表示**: 1秒間隔でOTPを自動更新（プログレスバー付き）
+- **セキュアな保存**: セキュリティコードはPBKDF2で暗号化してローカル保存
+- **コマンドライン操作**: 直感的なコマンドラインインターフェース
+- **Docker連携**: otpauthコンテナを使用したQRコード解析
+- **アカウント管理**: 一覧、検索、更新、削除機能
+
+### 📋 システム要件
+
+- **Python**: 3.13以上（推奨: 3.13.9）
+- **Poetry**: 依存関係管理
+- **Docker**: QRコード解析用
+- **macOS**: カメラアクセス権限
+- **システムライブラリ**: zbar（QRコード読み取り用）
+
+#### 主要な依存関係
+
+```toml
+[tool.poetry.dependencies]
+python = "^3.13"
+pyotp = "^2.9.0"              # OTP生成
+opencv-python = "^4.8.1"      # QRコード読み取り
+cryptography = "^41.0.7"      # 暗号化
+Pillow = "^10.0.1"            # 画像処理
+docker = "^6.1.3"             # Dockerクライアント
+numpy = "^1.24.0"             # 数値計算
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^7.0.0"             # テストフレームワーク
+pytest-cov = "^4.0.0"         # カバレッジ
+black = "^23.0.0"             # フォーマッター
+flake8 = "^6.0.0"             # Linter
+mypy = "^1.0.0"               # 型チェッカー
+```
+
+---
+
+**開発環境**: macOS Sequoia 24.6.0 | Python 3.13.9 | Poetry 2.2.1
