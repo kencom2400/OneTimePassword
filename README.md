@@ -110,6 +110,10 @@ poetry run python src/main.py show --all
 poetry run python src/main.py show <account_id>
 ```
 
+**実行例（全アカウント表示）:**
+
+![OTP表示の実行例](images/command_show_all.jpg)
+
 #### アカウント管理
 
 ```bash
