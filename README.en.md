@@ -133,7 +133,7 @@ Following command examples use the **wrapper shell format**. For other methods, 
 ./otp show --all                # Display all OTPs (real-time)
 ./otp show <account_id>         # Display specific account's OTP
 ./otp search <keyword>          # Search accounts
-./otp update <id> --name <name> # Update account
+./otp update <account_id> --name <name> # Update account
 ./otp delete <account_id>       # Delete account
 ```
 

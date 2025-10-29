@@ -133,7 +133,7 @@ chmod 600 ~/.otp_password
 ./otp show --all                # 全OTP表示（リアルタイム更新）
 ./otp show <account_id>         # 特定アカウントのOTP表示
 ./otp search <keyword>          # アカウント検索
-./otp update <id> --name <name> # アカウント更新
+./otp update <account_id> --name <name> # アカウント更新
 ./otp delete <account_id>       # アカウント削除
 ```
 
