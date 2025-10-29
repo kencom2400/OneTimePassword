@@ -112,7 +112,7 @@ poetry run python src/main.py show <account_id>
 
 **実行例（全アカウント表示）:**
 
-![OTP表示の実行例](images/command_show_all.jpg)
+![OTP表示の実行例](images/command_show_all.png)
 
 #### アカウント管理
 

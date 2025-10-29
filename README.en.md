@@ -112,7 +112,7 @@ poetry run python src/main.py show <account_id>
 
 **Example (Display All Accounts):**
 
-![OTP Display Example](images/command_show_all.jpg)
+![OTP Display Example](images/command_show_all.png)
 
 #### Account Management
 
